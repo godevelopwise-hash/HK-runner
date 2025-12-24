@@ -1,0 +1,5 @@
+{
+  "name": "手機ver 完成品 23/12 of HK RUNNER",
+  "description": "A high-performance 3D endless runner game built with React, Three.js, and Tailwind CSS, featuring procedural track generation, lane switching, and obstacle avoidance.",
+  "requestFramePermissions": []
+}
