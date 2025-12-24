@@ -581,6 +581,12 @@ const App: React.FC = () => {
             </div>
 
           </div>
+          
+          {/* Footer Credits */}
+          <div className="absolute bottom-6 left-0 w-full text-center pointer-events-auto">
+              <p className="text-stone-300/80 text-[10px] md:text-xs font-mono tracking-widest uppercase">© 2025 GoDevelopWise. All rights reserved.</p>
+              <p className="text-stone-300/80 text-[10px] md:text-xs font-mono tracking-widest uppercase mt-1">Game design & code by Garfield Wong</p>
+          </div>
         </div>
       )}
 
