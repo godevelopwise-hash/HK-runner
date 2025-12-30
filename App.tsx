@@ -589,6 +589,7 @@ const App: React.FC = () => {
   };
 
   const startEndlessMode = () => {
+      endTriggeredRef.current = false; // Reset end trigger for endless mode
       setIsEndlessMode(true);
       setStatus(GameStatus.PLAYING);
   };
