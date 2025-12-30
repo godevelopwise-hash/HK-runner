@@ -949,7 +949,7 @@ const App: React.FC = () => {
                                             )}
                                             <div className="flex flex-col">
                                                 <span className={`font-bold text-lg ${isTop1 ? 'text-yellow-700' : 'text-stone-900'}`}>{entry.name}</span>
-                                                <span className="text-[10px] text-stone-500 font-mono uppercase">{entry.outfit || 'CASUAL'} OUTFIT • {entry.date}</span>
+                                                <span className="text-[10px] text-stone-500 font-mono uppercase">{entry.date}</span>
                                             </div>
                                         </div>
                                     </div>
