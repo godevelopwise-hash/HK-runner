@@ -918,40 +918,85 @@ const App: React.FC = () => {
                     <h2 className="text-4xl md:text-5xl font-black italic tracking-tighter">排行榜 LEADERBOARD</h2>
                 </div>
                 
-                <div className="bg-white p-6 border-4 border-stone-900 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)]">
+                <div className="bg-white p-6 border-4 border-stone-900 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)] mb-20">
                     <h3 className="text-2xl font-black mb-4 border-b-2 border-stone-200 pb-2 text-yellow-600">🏆 全球 TOP 10</h3>
                     <div className="space-y-3">
                         {leaderboard.length > 0 ? (
-                            leaderboard.map((entry, idx) => (
-                                <div key={idx} className="flex justify-between items-center p-3 bg-stone-50 border-2 border-stone-200 rounded">
-                                    <div className="flex items-center gap-3">
-                                        <div className="flex items-center gap-2">
-                                            <span className="font-black text-stone-400 w-6">#{idx + 1}</span>
-                                            {entry.photoURL && (
-                                                <img src={entry.photoURL} alt={entry.name} className="w-8 h-8 rounded-full border-2 border-stone-300" />
-                                            )}
+                            leaderboard.map((entry, idx) => {
+                                const isTop1 = idx === 0;
+                                const isTop2 = idx === 1;
+                                const isTop3 = idx === 2;
+                                
+                                return (
+                                <div key={idx} className={`flex justify-between items-center p-3 border-2 rounded ${
+                                    isTop1 ? 'bg-yellow-100 border-yellow-500 shadow-[4px_4px_0px_0px_rgba(234,179,8,0.3)] scale-[1.02]' :
+                                    isTop2 ? 'bg-slate-100 border-slate-400 shadow-[2px_2px_0px_0px_rgba(148,163,184,0.3)]' :
+                                    isTop3 ? 'bg-orange-50 border-orange-300 shadow-[2px_2px_0px_0px_rgba(253,186,116,0.3)]' :
+                                    'bg-stone-50 border-stone-200'
+                                }`}>
+                                    <div className="flex items-center gap-4">
+                                        <div className="flex items-center justify-center w-8 h-8">
+                                            {isTop1 ? <span className="text-3xl">🥇</span> :
+                                             isTop2 ? <span className="text-3xl">🥈</span> :
+                                             isTop3 ? <span className="text-3xl">🥉</span> :
+                                             <span className="font-black text-stone-400 text-lg">#{idx + 1}</span>
+                                            }
                                         </div>
-                                        <div className="flex flex-col">
-                                            <span className="font-bold text-lg text-stone-900">{entry.name}</span>
-                                            <span className="text-[10px] text-stone-500 font-mono uppercase">{entry.outfit || 'CASUAL'} OUTFIT • {entry.date}</span>
+                                        
+                                        <div className="flex items-center gap-2">
+                                            {entry.photoURL && (
+                                                <img src={entry.photoURL} alt={entry.name} className={`w-10 h-10 rounded-full border-2 ${isTop1 ? 'border-yellow-500' : 'border-stone-300'}`} />
+                                            )}
+                                            <div className="flex flex-col">
+                                                <span className={`font-bold text-lg ${isTop1 ? 'text-yellow-700' : 'text-stone-900'}`}>{entry.name}</span>
+                                                <span className="text-[10px] text-stone-500 font-mono uppercase">{entry.outfit || 'CASUAL'} OUTFIT • {entry.date}</span>
+                                            </div>
                                         </div>
                                     </div>
                                     <div className="flex items-baseline gap-1">
-                                        <span className="text-2xl font-black text-stone-900">{entry.score}</span>
+                                        <span className={`text-2xl font-black ${isTop1 ? 'text-yellow-600' : 'text-stone-900'}`}>{entry.score}</span>
                                         <span className="text-xs font-bold text-stone-500">m</span>
                                     </div>
                                 </div>
-                            ))
+                                );
+                            })
                         ) : (
                             <div className="text-center py-10 text-stone-400 font-bold italic">抓取排行榜資料中...</div>
                         )}
                     </div>
                 </div>
+
+                {/* My Rank Footer */}
+                {user && (
+                    <div className="fixed bottom-0 left-0 w-full p-4 pointer-events-none z-50 flex justify-center">
+                         <div className="w-full max-w-3xl bg-stone-900 text-white p-4 border-t-4 border-yellow-500 shadow-[0_-4px_10px_rgba(0,0,0,0.3)] pointer-events-auto flex justify-between items-center rounded-t-xl">
+                            <div className="flex items-center gap-4">
+                                <div className="bg-yellow-500 text-stone-900 font-black px-3 py-1 rounded">MY RANK</div>
+                                <div className="flex items-center gap-2">
+                                     {user.photoURL && <img src={user.photoURL} className="w-8 h-8 rounded-full border border-white" />}
+                                     <div className="flex flex-col">
+                                        <span className="font-bold text-sm text-stone-300">YOUR BEST</span>
+                                        <span className="font-black text-xl leading-none">{highScore > 0 ? highScore : "---"}</span>
+                                     </div>
+                                </div>
+                            </div>
+                            <div className="text-right">
+                                {leaderboard.find(e => e.name === playerName) ? (
+                                    <div className="text-yellow-400 font-black text-2xl">
+                                        #{leaderboard.findIndex(e => e.name === playerName) + 1}
+                                    </div>
+                                ) : (
+                                    <div className="text-stone-500 font-bold text-sm">NOT IN TOP 10</div>
+                                )}
+                            </div>
+                         </div>
+                    </div>
+                )}
             </div>
             
-            <div className="fixed bottom-0 left-0 w-full p-4 bg-gradient-to-t from-[#e0d5c0] to-transparent pointer-events-none flex justify-center z-40">
-                <button onClick={() => setStatus(GameStatus.MENU)} className="w-full max-w-3xl py-4 bg-stone-900 text-white font-bold text-2xl shadow-[6px_6px_0px_0px_rgba(0,0,0,0.2)] hover:opacity-90 active:translate-y-1 active:shadow-none transition-all pointer-events-auto">
-                    返回主頁 BACK
+            <div className="fixed top-4 right-4 z-50">
+                <button onClick={() => setStatus(GameStatus.MENU)} className="w-12 h-12 bg-stone-900 text-white font-bold rounded-full shadow-lg flex items-center justify-center hover:bg-stone-800 active:scale-95 transition-all">
+                    ✕
                 </button>
             </div>
         </div>
