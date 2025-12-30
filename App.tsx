@@ -597,10 +597,13 @@ const App: React.FC = () => {
 
       try {
           // 提交到 Firestore
-          await addDoc(collection(db, 'leaderboard'), {
+          const entryWithPhoto = {
               ...newEntry,
+              photoURL: user?.photoURL || undefined,
               timestamp: serverTimestamp()
-          });
+          };
+          // 提交到 Firestore
+          await addDoc(collection(db, 'leaderboard'), entryWithPhoto);
           
           // 提交後重新讀取
           await fetchLeaderboard();
@@ -922,7 +925,12 @@ const App: React.FC = () => {
                             leaderboard.map((entry, idx) => (
                                 <div key={idx} className="flex justify-between items-center p-3 bg-stone-50 border-2 border-stone-200 rounded">
                                     <div className="flex items-center gap-3">
-                                        <span className="font-black text-stone-400 w-6">#{idx + 1}</span>
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-black text-stone-400 w-6">#{idx + 1}</span>
+                                            {entry.photoURL && (
+                                                <img src={entry.photoURL} alt={entry.name} className="w-8 h-8 rounded-full border-2 border-stone-300" />
+                                            )}
+                                        </div>
                                         <div className="flex flex-col">
                                             <span className="font-bold text-lg text-stone-900">{entry.name}</span>
                                             <span className="text-[10px] text-stone-500 font-mono uppercase">{entry.outfit || 'CASUAL'} OUTFIT • {entry.date}</span>

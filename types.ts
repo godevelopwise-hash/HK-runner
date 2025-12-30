@@ -158,4 +158,5 @@ export interface LeaderboardEntry {
   score: number; // Distance
   date: string;
   outfit: CharacterStyle['outfit'];
+  photoURL?: string; // Add Photo URL
 }
