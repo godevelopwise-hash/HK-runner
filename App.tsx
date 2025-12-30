@@ -654,14 +654,18 @@ const App: React.FC = () => {
     if (status !== GameStatus.PLAYING || endTriggeredRef.current) return;
     endTriggeredRef.current = true;
     processEndGame(false, endScore);
-    setShowLeaderboardInput(true);
+    if (!isGuest) {
+        setShowLeaderboardInput(true);
+    }
   };
 
   const handleWin = (endScore: number) => {
     if (status !== GameStatus.PLAYING || endTriggeredRef.current) return;
     endTriggeredRef.current = true;
     processEndGame(true, endScore);
-    setShowLeaderboardInput(true);
+    if (!isGuest) {
+        setShowLeaderboardInput(true);
+    }
   };
 
   const handleCoinCollected = (type: ItemType) => {
