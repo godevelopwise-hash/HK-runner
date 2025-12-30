@@ -422,13 +422,12 @@ const App: React.FC = () => {
 
   const handleGameOver = (endScore: number) => {
     processEndGame(false, endScore);
-    if (isEndlessMode) {
-        setShowLeaderboardInput(true);
-    }
+    setShowLeaderboardInput(true);
   };
 
   const handleWin = (endScore: number) => {
     processEndGame(true, endScore);
+    setShowLeaderboardInput(true);
   };
 
   const handleCoinCollected = (type: ItemType) => {
@@ -903,7 +902,7 @@ const App: React.FC = () => {
       {(status === GameStatus.VICTORY || status === GameStatus.GAMEOVER) && (
         <div className={`absolute inset-0 z-40 overflow-y-auto ${status === GameStatus.VICTORY ? 'bg-yellow-500/90' : 'bg-red-900/95'} text-white`}>
             <div className="min-h-full flex flex-col items-center justify-center p-6 landscape:p-4 lg:landscape:p-6 text-center animate-fade-in">
-                {showLeaderboardInput && isEndlessMode && status === GameStatus.GAMEOVER ? (
+                {showLeaderboardInput ? (
                      <div className="w-full max-w-md bg-stone-900 border-4 border-white p-6 shadow-[8px_8px_0px_0px_rgba(255,255,255,0.2)]">
                          <h2 className="text-4xl font-black mb-4 italic text-yellow-500">極限紀錄 NEW RECORD</h2>
                          <p className="text-xl font-bold mb-4 text-white">跑程 DISTANCE: <span className="text-yellow-400">{Math.floor(finalScore)}m</span></p>
