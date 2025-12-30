@@ -9,8 +9,17 @@ import { REGIONS_DATA } from './constants';
 import Synth from './utils/Synth';
 import * as THREE from 'three';
 import { db, auth, googleProvider } from './firebase';
-import { collection, addDoc, getDocs, query, orderBy, limit, serverTimestamp } from 'firebase/firestore';
-import { signInWithPopup, signOut, onAuthStateChanged, User, setPersistence, browserLocalPersistence } from 'firebase/auth';
+import { collection, addDoc, getDocs, query, orderBy, limit, serverTimestamp, doc, setDoc, getDoc } from 'firebase/firestore';
+import { 
+    onAuthStateChanged, 
+    signInWithPopup, 
+    signInWithRedirect,
+    getRedirectResult,
+    signOut, 
+    setPersistence, 
+    browserLocalPersistence, 
+    User 
+} from 'firebase/auth';
 
 // --- Custom Icons ---
 const PineappleBunIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
@@ -105,7 +114,14 @@ const HeartIcon: React.FC<{ className?: string, active?: boolean }> = ({ classNa
 );
 
 // --- Login Overlay Component ---
-const LoginOverlay: React.FC<{ onLogin: () => void, onGuest: () => void }> = ({ onLogin, onGuest }) => (
+const LoginOverlay: React.FC<{ 
+    onLogin: () => void, 
+    onGuest: () => void, 
+    onLoginRedirect: () => void,
+    isLoggingIn: boolean, 
+    authLoading: boolean,
+    error: string | null 
+}> = ({ onLogin, onGuest, onLoginRedirect, isLoggingIn, authLoading, error }) => (
     <div className="fixed inset-0 z-[100] bg-stone-900 flex flex-col items-center justify-center p-6 sm:p-12 overflow-hidden">
         {/* Animated Background Elements */}
         <div className="absolute inset-0 opacity-20 pointer-events-none">
@@ -129,14 +145,33 @@ const LoginOverlay: React.FC<{ onLogin: () => void, onGuest: () => void }> = ({ 
             <div className="w-full flex flex-col gap-4">
                 <button 
                     onClick={onLogin}
-                    disabled={false} // Will add loading state in button text
+                    disabled={isLoggingIn || authLoading}
                     className="w-full py-5 bg-white text-stone-900 border-4 border-stone-800 shadow-[8px_8px_0px_0px_#000] font-black text-xl flex items-center justify-center gap-3 hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all disabled:opacity-50"
                 >
-                    <svg className="w-6 h-6 animate-bounce" viewBox="0 0 24 24">
-                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-                    </svg>
-                    GOOGLE LOGIN / 登入
+                    {(isLoggingIn || authLoading) ? (
+                        <div className="w-6 h-6 border-4 border-stone-900 border-t-transparent rounded-full animate-spin"></div>
+                    ) : (
+                        <svg className="w-6 h-6 animate-bounce" viewBox="0 0 24 24">
+                            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                        </svg>
+                    )}
+                    {(isLoggingIn || authLoading) ? "LOADING..." : "GOOGLE LOGIN / 登入"}
                 </button>
+                
+                {isLoggingIn && (
+                    <button 
+                        onClick={onLoginRedirect}
+                        className="text-white text-xs underline opacity-70 hover:opacity-100"
+                    >
+                        If no response, try Redirect Mode / 如無反應請按此 (轉向登入)
+                    </button>
+                )}
+
+                {error && (
+                    <div className="bg-red-500/20 text-red-100 p-3 border-2 border-red-500 text-sm font-bold">
+                        Error: {error}
+                    </div>
+                )}
                 
                 <button 
                     onClick={onGuest}
@@ -349,32 +384,115 @@ const App: React.FC = () => {
   const [authLoading, setAuthLoading] = useState(true);
   const [isGuest, setIsGuest] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const endTriggeredRef = useRef(false);
 
   useEffect(() => {
-     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
          setUser(currentUser);
          setAuthLoading(false);
-         if (currentUser?.displayName) {
-             setPlayerName(filterProfanity(currentUser.displayName).substring(0, 20));
+         if (currentUser) {
+             if (currentUser.displayName) {
+                 setPlayerName(filterProfanity(currentUser.displayName).substring(0, 20));
+             }
+             // Sync FROM cloud on login
+             try {
+                const userRef = doc(db, 'users', currentUser.uid);
+                const docSnap = await getDoc(userRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data.highScore !== undefined) {
+                        setHighScore(data.highScore);
+                        localStorage.setItem('hk_runner_highscore', data.highScore.toString());
+                    }
+                    if (data.totalBuns !== undefined) {
+                        setTotalBuns(data.totalBuns);
+                        localStorage.setItem('hk_runner_buns', data.totalBuns.toString());
+                    }
+                    if (data.upgrades) {
+                        setUpgrades(data.upgrades);
+                        localStorage.setItem('hk_runner_upgrades', JSON.stringify(data.upgrades));
+                    }
+                    if (data.charStyle) {
+                        setCharStyle(data.charStyle);
+                        localStorage.setItem('hk_runner_charstyle', JSON.stringify(data.charStyle));
+                    }
+                    if (data.activeFlags) {
+                        setActiveFlags(data.activeFlags);
+                        localStorage.setItem('hk_runner_active_flags', JSON.stringify(data.activeFlags));
+                    }
+                }
+             } catch (err) {
+                 console.error("Failed to load cloud progress:", err);
+             }
          }
      });
      return () => unsubscribe();
   }, []);
 
+  // Auto-sync TO cloud
+  useEffect(() => {
+     if (!user || authLoading) return;
+     const timeoutId = setTimeout(() => {
+         const userRef = doc(db, 'users', user.uid);
+         setDoc(userRef, {
+             highScore,
+             totalBuns,
+             upgrades,
+             charStyle,
+             activeFlags,
+             lastUpdated: serverTimestamp()
+         }, { merge: true }).catch(err => console.error("Cloud sync failed:", err));
+     }, 3000);
+     return () => clearTimeout(timeoutId);
+  }, [user, authLoading, highScore, totalBuns, upgrades, charStyle, activeFlags]);
+
+  useEffect(() => {
+      setPersistence(auth, browserLocalPersistence).catch(e => console.error("Persistence error:", e));
+      // Handle Redirect Results
+      getRedirectResult(auth)
+        .then((result) => {
+            if (result) console.log("Redirect Login Success:", result.user.displayName);
+        })
+        .catch((err) => {
+            console.error("Redirect Error:", err);
+            setLoginError(err.message);
+        });
+  }, []);
+
   const loginWithGoogle = async () => {
       if (isLoggingIn) return;
       setIsLoggingIn(true);
+      setLoginError(null);
+      console.log("Starting Google Login (Popup)...");
       try {
-          await setPersistence(auth, browserLocalPersistence);
-          await signInWithPopup(auth, googleProvider);
+          const result = await signInWithPopup(auth, googleProvider);
+          console.log("Popup Login Success:", result.user.displayName);
       } catch (error: any) {
           console.error("Login failed:", error);
           if (error.code === 'auth/popup-closed-by-user') {
-              // Ignore this one as it's common
+              // User closed the popup
+          } else if (error.code === 'auth/cancelled-popup-request') {
+              // Another popup was opened
           } else {
-              alert("Login Error: " + error.message);
+              setLoginError(error.message || "Unknown error");
+              // Fallback to alert if needed, but we show it on UI now
           }
       } finally {
+          setIsLoggingIn(false);
+      }
+  };
+
+  const loginWithGoogleRedirect = async () => {
+      setIsLoggingIn(true);
+      setLoginError(null);
+      console.log("Starting Google Login (Redirect)...");
+      try {
+          await signInWithRedirect(auth, googleProvider);
+      } catch (error: any) {
+          console.error("Redirect failed:", error);
+          setLoginError(error.message);
           setIsLoggingIn(false);
       }
   };
@@ -437,6 +555,7 @@ const App: React.FC = () => {
   }, [status]);
 
   const startGame = () => {
+    endTriggeredRef.current = false;
     setGameId(prev => prev + 1); 
     setFinalScore(0); 
     if (scoreDisplayRef.current) scoreDisplayRef.current.innerText = "0"; 
@@ -464,7 +583,8 @@ const App: React.FC = () => {
   };
 
   const submitLeaderboardScore = async () => {
-      if (!playerName.trim()) return;
+      if (!playerName.trim() || isSubmitting) return;
+      setIsSubmitting(true);
       
       const sanitizedName = filterProfanity(playerName.trim()).substring(0, 20);
       const scoreValue = Math.floor(finalScore);
@@ -483,7 +603,7 @@ const App: React.FC = () => {
           });
           
           // 提交後重新讀取
-          fetchLeaderboard();
+          await fetchLeaderboard();
       } catch (error) {
           console.error("Error adding score: ", error);
           // 失敗時還是存一下 local 以防萬一
@@ -491,9 +611,11 @@ const App: React.FC = () => {
               .sort((a, b) => b.score - a.score)
               .slice(0, 10);
           localStorage.setItem('hk_runner_leaderboard', JSON.stringify(newLocal));
+          setLeaderboard(newLocal);
+      } finally {
+          setIsSubmitting(false);
+          setShowLeaderboardInput(false);
       }
-
-      setShowLeaderboardInput(false);
   };
 
   const calculateFinalRewards = () => {
@@ -529,11 +651,15 @@ const App: React.FC = () => {
   };
 
   const handleGameOver = (endScore: number) => {
+    if (status !== GameStatus.PLAYING || endTriggeredRef.current) return;
+    endTriggeredRef.current = true;
     processEndGame(false, endScore);
     setShowLeaderboardInput(true);
   };
 
   const handleWin = (endScore: number) => {
+    if (status !== GameStatus.PLAYING || endTriggeredRef.current) return;
+    endTriggeredRef.current = true;
     processEndGame(true, endScore);
     setShowLeaderboardInput(true);
   };
@@ -611,7 +737,14 @@ const App: React.FC = () => {
       
       {/* Login Screen Overlay */}
       {!user && !isGuest && !authLoading && (
-        <LoginOverlay onLogin={loginWithGoogle} onGuest={() => setIsGuest(true)} />
+        <LoginOverlay 
+            isLoggingIn={isLoggingIn} 
+            authLoading={authLoading}
+            error={loginError}
+            onLogin={loginWithGoogle} 
+            onLoginRedirect={loginWithGoogleRedirect}
+            onGuest={() => setIsGuest(true)} 
+        />
       )}
 
       {/* Auth Loading Spinner (Optional) */}
@@ -739,7 +872,7 @@ const App: React.FC = () => {
                                 📖 遊戲說明書
                              </button>
                              <button onClick={() => { setStatus(GameStatus.LEADERBOARD); fetchLeaderboard(); }} className="py-3 bg-yellow-400 hover:bg-yellow-300 text-stone-900 border-2 border-stone-900 font-bold text-lg shadow-[3px_3px_0px_rgba(0,0,0,0.3)] active:translate-y-1 active:shadow-none transition-all">
-                                🏆 本地 / 全球排行榜
+                                🏆 全球排行榜
                              </button>
                         </div>
                     ) : (
@@ -754,7 +887,7 @@ const App: React.FC = () => {
                                 📖 遊戲說明書
                              </button>
                              <button onClick={() => { setStatus(GameStatus.LEADERBOARD); fetchLeaderboard(); }} className="col-span-2 py-3 bg-yellow-400 hover:bg-yellow-300 text-stone-900 border-2 border-stone-900 font-bold text-lg shadow-[3px_3px_0px_rgba(0,0,0,0.3)] active:translate-y-1 active:shadow-none transition-all">
-                                🏆 本地 / 全球排行榜
+                                🏆 全球排行榜
                              </button>
                         </>
                     )}

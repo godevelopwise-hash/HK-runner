@@ -23,5 +23,6 @@ const analytics = typeof window !== "undefined" ? getAnalytics(app) : null;
 const db = getFirestore(app);
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({ prompt: 'select_account' });
 
 export { app, analytics, db, auth, googleProvider };

@@ -237,7 +237,7 @@ const GameScene: React.FC<{
 
     if (status !== GameStatus.PLAYING) return;
     
-    if (!isEndlessMode && scoreRef.current >= 10000) {
+    if (status === GameStatus.PLAYING && !isEndlessMode && scoreRef.current >= 10000) {
         scoreRef.current = 10000;
         updateScoreUI(10000);
         onWin(10000);
