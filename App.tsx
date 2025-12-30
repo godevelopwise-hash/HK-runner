@@ -904,7 +904,10 @@ const App: React.FC = () => {
           </div>
           
           {/* Footer Credits */}
-          <div className="absolute bottom-6 left-0 w-full text-center pointer-events-auto">
+
+          
+          {/* Footer Credits - Changed to relative positioning to avoid overlap */}
+          <div className="w-full text-center pointer-events-auto mt-4 shrink-0">
               <p className="text-stone-300/80 text-[10px] md:text-xs font-mono tracking-widest uppercase">© 2025 GoDevelopWise. All rights reserved.</p>
               <p className="text-stone-300/80 text-[10px] md:text-xs font-mono tracking-widest uppercase mt-1">Game design & code by Garfield Wong</p>
           </div>
