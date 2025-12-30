@@ -8,6 +8,8 @@ import { GameStatus, GameSettings, CharacterStyle, Upgrades, ItemType, RegionId,
 import { REGIONS_DATA } from './constants';
 import Synth from './utils/Synth';
 import * as THREE from 'three';
+import { db } from './firebase';
+import { collection, addDoc, getDocs, query, orderBy, limit, serverTimestamp } from 'firebase/firestore';
 
 // --- Custom Icons ---
 const PineappleBunIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
@@ -274,12 +276,30 @@ const App: React.FC = () => {
   const [newUnlock, setNewUnlock] = useState<string | null>(null); 
 
   const [isEndlessMode, setIsEndlessMode] = useState(false);
-  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>(() => {
-      const saved = localStorage.getItem('hk_runner_leaderboard');
-      return saved ? JSON.parse(saved) : [];
-  });
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [showLeaderboardInput, setShowLeaderboardInput] = useState(false);
   const [playerName, setPlayerName] = useState("");
+
+  const fetchLeaderboard = useCallback(async () => {
+      try {
+          const q = query(collection(db, 'leaderboard'), orderBy('score', 'desc'), limit(10));
+          const querySnapshot = await getDocs(q);
+          const entries: LeaderboardEntry[] = [];
+          querySnapshot.forEach((doc) => {
+              entries.push(doc.data() as LeaderboardEntry);
+          });
+          setLeaderboard(entries);
+      } catch (error) {
+          console.error("Error fetching leaderboard: ", error);
+          // Fallback to local storage if firestore fails
+          const saved = localStorage.getItem('hk_runner_leaderboard');
+          if (saved) setLeaderboard(JSON.parse(saved));
+      }
+  }, []);
+
+  useEffect(() => {
+     fetchLeaderboard();
+  }, [fetchLeaderboard]);
 
 
   useEffect(() => {
@@ -336,22 +356,35 @@ const App: React.FC = () => {
       setStatus(GameStatus.PLAYING);
   };
 
-  const submitLeaderboardScore = () => {
+  const submitLeaderboardScore = async () => {
       if (!playerName.trim()) return;
       
+      const scoreValue = Math.floor(finalScore);
       const newEntry: LeaderboardEntry = {
           name: playerName.substring(0, 20),
-          score: Math.floor(finalScore),
+          score: scoreValue,
           date: new Date().toLocaleDateString(),
           outfit: charStyle.outfit
       };
 
-      const newLeaderboard = [...leaderboard, newEntry]
-          .sort((a, b) => b.score - a.score)
-          .slice(0, 10);
-      
-      setLeaderboard(newLeaderboard);
-      localStorage.setItem('hk_runner_leaderboard', JSON.stringify(newLeaderboard));
+      try {
+          // 提交到 Firestore
+          await addDoc(collection(db, 'leaderboard'), {
+              ...newEntry,
+              timestamp: serverTimestamp()
+          });
+          
+          // 提交後重新讀取
+          fetchLeaderboard();
+      } catch (error) {
+          console.error("Error adding score: ", error);
+          // 失敗時還是存一下 local 以防萬一
+          const newLocal = [...leaderboard, newEntry]
+              .sort((a, b) => b.score - a.score)
+              .slice(0, 10);
+          localStorage.setItem('hk_runner_leaderboard', JSON.stringify(newLocal));
+      }
+
       setShowLeaderboardInput(false);
   };
 
