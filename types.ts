@@ -16,6 +16,7 @@ export enum GameStatus {
   SHOP = 'SHOP',
   CUSTOMIZE = 'CUSTOMIZE',
   MANUAL = 'MANUAL', // 新增說明書狀態
+  LEADERBOARD = 'LEADERBOARD', // 新增排行榜狀態
   PLAYING = 'PLAYING',
   PAUSED = 'PAUSED',
   GAMEOVER = 'GAMEOVER',
