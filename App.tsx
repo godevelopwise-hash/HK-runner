@@ -510,17 +510,28 @@ const App: React.FC = () => {
           const q = query(collection(db, 'leaderboard'), orderBy('score', 'desc'), limit(10));
           const querySnapshot = await getDocs(q);
           const entries: LeaderboardEntry[] = [];
-          querySnapshot.forEach((doc) => {
-              entries.push(doc.data() as LeaderboardEntry);
-          });
-          setLeaderboard(entries);
-      } catch (error) {
-          console.error("Error fetching leaderboard: ", error);
-          // Fallback to local storage if firestore fails
-          const saved = localStorage.getItem('hk_runner_leaderboard');
-          if (saved) setLeaderboard(JSON.parse(saved));
-      }
-  }, []);
+           querySnapshot.forEach((doc) => {
+               const data = doc.data();
+               // 嘗試標準化日期顯示
+               let displayDate = data.date;
+               if (data.timestamp && data.timestamp.toDate) {
+                   const dateObj = data.timestamp.toDate();
+                   displayDate = `${dateObj.getDate().toString().padStart(2, '0')}/${(dateObj.getMonth() + 1).toString().padStart(2, '0')}/${dateObj.getFullYear()}`;
+               }
+               
+               entries.push({
+                   ...data,
+                   date: displayDate
+               } as LeaderboardEntry);
+           });
+           setLeaderboard(entries);
+       } catch (error) {
+           console.error("Error fetching leaderboard: ", error);
+           // Fallback to local storage if firestore fails
+           const saved = localStorage.getItem('hk_runner_leaderboard');
+           if (saved) setLeaderboard(JSON.parse(saved));
+       }
+   }, []);
 
   useEffect(() => {
      fetchLeaderboard();
@@ -588,10 +599,13 @@ const App: React.FC = () => {
       
       const sanitizedName = filterProfanity(playerName.trim()).substring(0, 20);
       const scoreValue = Math.floor(finalScore);
-      const newEntry: LeaderboardEntry = {
-          name: sanitizedName,
-          score: scoreValue,
-          date: new Date().toLocaleDateString(),
+          const now = new Date();
+          const formattedDate = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()}`;
+          
+          const newEntry: LeaderboardEntry = {
+              name: sanitizedName,
+              score: scoreValue,
+              date: formattedDate,
           outfit: charStyle.outfit
       };
 

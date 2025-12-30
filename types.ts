@@ -159,4 +159,5 @@ export interface LeaderboardEntry {
   date: string;
   outfit: CharacterStyle['outfit'];
   photoURL?: string; // Add Photo URL
+  timestamp?: any; // Firestore Timestamp
 }
