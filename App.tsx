@@ -257,6 +257,7 @@ const ColorPicker = ({ label, current, colors, onSelect }: { label: string, curr
 
 const App: React.FC = () => {
   const [status, setStatus] = useState<GameStatus>(GameStatus.MENU);
+  const [audioAllowed, setAudioAllowed] = useState(false);
   const [gameId, setGameId] = useState(0); 
   const [highScore, setHighScore] = useState(() => parseInt(localStorage.getItem('hk_runner_highscore') || '0'));
   
@@ -406,6 +407,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const handleFirstInteraction = () => {
+      setAudioAllowed(true);
       Synth.resume();
       window.removeEventListener('pointerdown', handleFirstInteraction);
       window.removeEventListener('keydown', handleFirstInteraction);
@@ -566,7 +568,7 @@ const App: React.FC = () => {
 
 
   useEffect(() => {
-    Synth.init();
+    // Synth.init() removed to avoid auto-start warning
     Synth.setVolume(settings.volume);
   }, []);
 
@@ -575,8 +577,10 @@ const App: React.FC = () => {
   }, [settings.volume]);
 
   useEffect(() => {
-    Synth.updateBGM(status);
-  }, [status]);
+    if (audioAllowed) {
+        Synth.updateBGM(status);
+    }
+  }, [status, audioAllowed]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
