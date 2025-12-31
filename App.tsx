@@ -622,20 +622,32 @@ const App: React.FC = () => {
       };
 
       try {
-          // 提交到 Firestore
+          // 提交到 Firestore (with 5s Timeout)
           const entryWithPhoto = {
               ...newEntry,
               photoURL: user?.photoURL ?? null,
               uid: user?.uid ?? null, // Bind UID (ensure not undefined)
               timestamp: serverTimestamp()
           };
-          // 提交到 Firestore
-          await addDoc(collection(db, 'leaderboard'), entryWithPhoto);
+          
+          const timeoutPromise = new Promise((_, reject) => 
+              setTimeout(() => reject(new Error("Request timed out (5s)")), 5000)
+          );
+
+          await Promise.race([
+              addDoc(collection(db, 'leaderboard'), entryWithPhoto),
+              timeoutPromise
+          ]);
+
           console.log("Score submitted successfully");
           
-          await fetchLeaderboard();
-      } catch (error) {
+          // Don't await fetch strictly to avoid blocking UI close
+          fetchLeaderboard().catch(e => console.warn("Background fetch failed:", e));
+
+      } catch (error: any) {
           console.error("Error adding score: ", error);
+          alert(`提交失敗 (將儲存於本地): ${error.message || "Unknown Error"}\n可能是權限不足或網絡問題。`);
+          
           // 失敗時還是存一下 local 以防萬一
           const newLocal = [...leaderboard, newEntry]
               .sort((a, b) => b.score - a.score)
