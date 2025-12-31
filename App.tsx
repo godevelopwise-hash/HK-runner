@@ -295,9 +295,13 @@ const App: React.FC = () => {
   }), [upgrades, activeFlags]);
 
   const [finalScore, setFinalScore] = useState(0); 
-  const scoreDisplayRef = useRef<HTMLDivElement>(null);
+  const scoreDisplayRef = useRef<HTMLSpanElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
-  const powerUpBarRef = useRef<HTMLDivElement>(null); 
+  const lemonTeaBarRef = useRef<HTMLDivElement>(null);
+  const magnetBarRef = useRef<HTMLDivElement>(null);
+  const lemonTeaTimerRef = useRef<HTMLSpanElement>(null);
+  const magnetTimerRef = useRef<HTMLSpanElement>(null);
+  const endTriggeredRef = useRef(false);
 
   const [lives, setLives] = useState(2);
   const [runBuns, setRunBuns] = useState(0);
@@ -317,7 +321,6 @@ const App: React.FC = () => {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const endTriggeredRef = useRef(false);
 
   useEffect(() => {
      const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -742,9 +745,18 @@ const App: React.FC = () => {
       }
   }, []);
 
-  const updatePowerUpUI = useCallback((progress: number) => {
-      if (powerUpBarRef.current) {
-          powerUpBarRef.current.style.width = `${progress * 100}%`;
+  const updatePowerUpUI = useCallback((status: { lemontea?: { progress: number; seconds: number }; magnet?: { progress: number; seconds: number } }) => {
+      if (lemonTeaBarRef.current && status.lemontea) {
+          lemonTeaBarRef.current.style.width = `${status.lemontea.progress * 100}%`;
+          if (lemonTeaTimerRef.current) {
+              lemonTeaTimerRef.current.innerText = `${status.lemontea.seconds.toFixed(1)}s`;
+          }
+      }
+      if (magnetBarRef.current && status.magnet) {
+          magnetBarRef.current.style.width = `${status.magnet.progress * 100}%`;
+          if (magnetTimerRef.current) {
+              magnetTimerRef.current.innerText = `${status.magnet.seconds.toFixed(1)}s`;
+          }
       }
   }, []);
 
@@ -1300,23 +1312,46 @@ const App: React.FC = () => {
           
           <div className="flex flex-col items-center w-full pb-8 md:pb-12 px-4 pointer-events-none">
               {activeItem && status === GameStatus.PLAYING && (
-                <div className="w-full max-w-[280px] h-10 bg-stone-900/80 backdrop-blur rounded-full border-2 border-stone-900 relative overflow-hidden flex items-center shadow-lg animate-bounce-slight">
-                    <div className="absolute left-1 top-1/2 -translate-y-1/2 z-10 flex -space-x-1">
-                        {(activeItem === 'lemontea' || activeItem === 'both') && <LemonTeaIcon className="w-8 h-8 drop-shadow-md z-20" />}
-                        {(activeItem === 'magnet' || activeItem === 'both') && <MagnetIcon className="w-8 h-8 drop-shadow-md z-10" />}
-                    </div>
-                    <div className="absolute inset-y-1 left-10 right-1 bg-stone-700/50 rounded-full overflow-hidden">
-                        <div 
-                            ref={powerUpBarRef}
-                            className={`h-full absolute left-0 top-0 ${activeItem === 'lemontea' ? 'bg-yellow-400' : activeItem === 'magnet' ? 'bg-blue-500' : 'bg-gradient-to-r from-yellow-400 to-blue-500'}`} 
-                            style={{ width: '100%' }} 
-                        />
-                    </div>
-                    <div className="absolute inset-0 flex items-center justify-center text-xs font-black uppercase text-white drop-shadow-md pl-8 tracking-wider">
-                        {activeItem === 'lemontea' && "SUPER SPEED!"}
-                        {activeItem === 'magnet' && "MAGNET ACTIVE!"}
-                        {activeItem === 'both' && "ALL POWERED UP!"}
-                    </div>
+                <div className="flex flex-col gap-2 w-full max-w-[280px] items-center">
+                    {/* Lemon Tea Bar */}
+                    {(activeItem === 'lemontea' || activeItem === 'both') && (
+                        <div className="w-full h-10 bg-stone-900/80 backdrop-blur rounded-full border-2 border-stone-900 relative overflow-hidden flex items-center shadow-lg animate-bounce-slight">
+                            <div className="absolute left-1 top-1/2 -translate-y-1/2 z-10">
+                                <LemonTeaIcon className="w-8 h-8 drop-shadow-md z-20" />
+                            </div>
+                            <div className="absolute inset-y-1 left-10 right-1 bg-stone-700/50 rounded-full overflow-hidden">
+                                <div 
+                                    ref={lemonTeaBarRef}
+                                    className="h-full absolute left-0 top-0 bg-yellow-400" 
+                                    style={{ width: '100%' }} 
+                                />
+                            </div>
+                            <div className="absolute inset-0 flex items-center justify-between px-4 pl-12">
+                                <span className="text-xs font-black uppercase text-white drop-shadow-md tracking-wider">SUPER SPEED</span>
+                                <span ref={lemonTeaTimerRef} className="text-xs font-bold font-mono text-white drop-shadow-md">0.0s</span>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Magnet Bar */}
+                    {(activeItem === 'magnet' || activeItem === 'both') && (
+                        <div className="w-full h-10 bg-stone-900/80 backdrop-blur rounded-full border-2 border-stone-900 relative overflow-hidden flex items-center shadow-lg animate-bounce-slight">
+                            <div className="absolute left-1 top-1/2 -translate-y-1/2 z-10">
+                                <MagnetIcon className="w-8 h-8 drop-shadow-md z-10" />
+                            </div>
+                            <div className="absolute inset-y-1 left-10 right-1 bg-stone-700/50 rounded-full overflow-hidden">
+                                <div 
+                                    ref={magnetBarRef}
+                                    className="h-full absolute left-0 top-0 bg-blue-500" 
+                                    style={{ width: '100%' }} 
+                                />
+                            </div>
+                            <div className="absolute inset-0 flex items-center justify-between px-4 pl-12">
+                                <span className="text-xs font-black uppercase text-white drop-shadow-md tracking-wider">MAGNET</span>
+                                <span ref={magnetTimerRef} className="text-xs font-bold font-mono text-white drop-shadow-md">0.0s</span>
+                            </div>
+                        </div>
+                    )}
                 </div>
               )}
           </div>

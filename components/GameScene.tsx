@@ -128,7 +128,7 @@ const GameScene: React.FC<{
   lives: number;
   onCoinCollected: (type: ItemType) => void;
   updateScoreUI: (score: number) => void; 
-  updatePowerUpUI: (progress: number) => void; // New prop
+  updatePowerUpUI: (status: { lemontea?: { progress: number; seconds: number }; magnet?: { progress: number; seconds: number } }) => void; // Updated prop type
   setActiveItemType: React.Dispatch<React.SetStateAction<'lemontea' | 'magnet' | 'both' | null>>;
   onRegionChange?: (region: RegionId) => void;
   onObstacleDestroyed?: () => void;
@@ -266,18 +266,30 @@ const GameScene: React.FC<{
     const pProgress = powerUpTimeLeft.current / maxPowerTime;
     const mProgress = magnetTimeLeft.current / maxMagnetTime;
     
-    if (powerUpTimeLeft.current > 0 && magnetTimeLeft.current > 0) { 
-        setActiveItemType('both'); 
-        updatePowerUpUI(pProgress); // Use PowerUp progress as dominant
-    } else if (powerUpTimeLeft.current > 0) { 
-        setActiveItemType('lemontea'); 
-        updatePowerUpUI(pProgress);
-    } else if (magnetTimeLeft.current > 0) { 
-        setActiveItemType('magnet'); 
-        updatePowerUpUI(mProgress);
-    } else { 
-        setActiveItemType(null); 
-        updatePowerUpUI(0);
+    // Calculate seconds remaining (rounded to 1 decimal)
+    const pSeconds = Math.ceil(powerUpTimeLeft.current / 100) / 10;
+    const mSeconds = Math.ceil(magnetTimeLeft.current / 100) / 10;
+
+    const statusObj: { lemontea?: { progress: number; seconds: number }; magnet?: { progress: number; seconds: number } } = {};
+    
+    if (powerUpTimeLeft.current > 0) {
+        statusObj.lemontea = { progress: pProgress, seconds: pSeconds };
+    }
+    
+    if (magnetTimeLeft.current > 0) {
+        statusObj.magnet = { progress: mProgress, seconds: mSeconds };
+    }
+    
+    updatePowerUpUI(statusObj); // Send object instead of single progress
+
+    if (powerUpTimeLeft.current > 0 && magnetTimeLeft.current > 0) {
+        setActiveItemType('both');
+    } else if (powerUpTimeLeft.current > 0) {
+        setActiveItemType('lemontea');
+    } else if (magnetTimeLeft.current > 0) {
+        setActiveItemType('magnet');
+    } else {
+        setActiveItemType(null);
     }
 
     if (!isPoweredUp) {
