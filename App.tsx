@@ -1372,7 +1372,7 @@ const App: React.FC = () => {
       )}
 
       {(status === GameStatus.VICTORY || status === GameStatus.GAMEOVER) && (
-        <div className={`absolute inset-0 z-40 overflow-y-auto ${status === GameStatus.VICTORY ? 'bg-yellow-500/90' : 'bg-red-900/95'} text-white`}>
+        <div className={`absolute inset-0 z-40 overflow-y-auto touch-auto select-auto ${status === GameStatus.VICTORY ? 'bg-yellow-500/90' : 'bg-red-900/95'} text-white`}>
             <div className="min-h-full flex flex-col items-center justify-center p-6 landscape:p-4 lg:landscape:p-6 text-center animate-fade-in">
                 {showLeaderboardInput ? (
                      <div className="w-full max-w-md bg-stone-900 border-4 border-white p-6 shadow-[8px_8px_0px_0px_rgba(255,255,255,0.2)]">
@@ -1384,6 +1384,7 @@ const App: React.FC = () => {
                               value={playerName}
                               onChange={(e) => setPlayerName(filterProfanity(e.target.value).substring(0, 20))}
                              placeholder="ENTER YOUR NAME"
+                             onPointerDown={(e) => e.stopPropagation()}
                              className="w-full bg-stone-800 text-white border-2 border-stone-600 p-3 mb-4 text-center font-bold text-xl uppercase placeholder:text-stone-600 focus:outline-none focus:border-yellow-500 select-text touch-auto pointer-events-auto"
                              maxLength={20}
                          />
