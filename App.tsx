@@ -807,9 +807,8 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="relative w-full h-full bg-[#e0d5c0] text-stone-900 font-sans overflow-hidden touch-none select-none">
+    <div className="relative w-full h-full bg-[#e0d5c0] text-stone-900 font-sans overflow-hidden">
       
-
 
       {/* Auth Loading Spinner (Optional) */}
       {authLoading && (
@@ -818,7 +817,7 @@ const App: React.FC = () => {
         </div>
       )}
 
-      <div className="absolute inset-0 z-0">
+      <div className="absolute inset-0 z-0 touch-none select-none">
         <Canvas 
             shadows 
             camera={{ position: [0, 5, 12], fov: 55 }} 
