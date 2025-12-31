@@ -4,6 +4,7 @@ import { Canvas, useThree } from '@react-three/fiber';
 import { ContactShadows, Environment, OrbitControls } from '@react-three/drei';
 import GameScene from './components/GameScene';
 import Player from './components/Player';
+import Login from './components/Login';
 import { GameStatus, GameSettings, CharacterStyle, Upgrades, ItemType, RegionId, PlayerState, LeaderboardEntry } from './types';
 import { REGIONS_DATA } from './constants';
 import Synth from './utils/Synth';
@@ -113,80 +114,9 @@ const HeartIcon: React.FC<{ className?: string, active?: boolean }> = ({ classNa
   </svg>
 );
 
-// --- Login Overlay Component ---
-const LoginOverlay: React.FC<{ 
-    onLogin: () => void, 
-    onGuest: () => void, 
-    onLoginRedirect: () => void,
-    isLoggingIn: boolean, 
-    authLoading: boolean,
-    error: string | null 
-}> = ({ onLogin, onGuest, onLoginRedirect, isLoggingIn, authLoading, error }) => (
-    <div className="fixed inset-0 z-[100] bg-stone-900 flex flex-col items-center justify-center p-6 sm:p-12 overflow-hidden">
-        {/* Animated Background Elements */}
-        <div className="absolute inset-0 opacity-20 pointer-events-none">
-            <div className="absolute top-10 left-10 w-32 h-32 bg-red-600 rounded-full blur-[80px] animate-pulse"></div>
-            <div className="absolute bottom-10 right-10 w-48 h-48 bg-yellow-600 rounded-full blur-[100px] animate-pulse delay-700"></div>
-        </div>
 
-        <div className="relative z-10 w-full max-w-md flex flex-col items-center text-center">
-            {/* Logo/Icon */}
-            <div className="mb-8 transform -rotate-3 scale-110">
-                <div className="bg-yellow-400 p-4 border-4 border-stone-800 shadow-[6px_6px_0px_0px_#1c1917]">
-                    <PineappleBunIcon className="w-20 h-20" />
-                </div>
-            </div>
 
-            <h1 className="text-5xl sm:text-7xl font-black italic tracking-tighter text-white mb-2 drop-shadow-[0_4px_0_rgba(255,0,0,0.5)]">
-                HK RUNNER
-            </h1>
-            <p className="text-xl sm:text-2xl font-bold text-stone-400 mb-10 tracking-[0.2em]">街頭生存指南</p>
 
-            <div className="w-full flex flex-col gap-4">
-                <button 
-                    onClick={onLogin}
-                    disabled={isLoggingIn || authLoading}
-                    className="w-full py-5 bg-white text-stone-900 border-4 border-stone-800 shadow-[8px_8px_0px_0px_#000] font-black text-xl flex items-center justify-center gap-3 hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all disabled:opacity-50"
-                >
-                    {(isLoggingIn || authLoading) ? (
-                        <div className="w-6 h-6 border-4 border-stone-900 border-t-transparent rounded-full animate-spin"></div>
-                    ) : (
-                        <svg className="w-6 h-6 animate-bounce" viewBox="0 0 24 24">
-                            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-                        </svg>
-                    )}
-                    {(isLoggingIn || authLoading) ? "LOADING..." : "GOOGLE LOGIN / 登入"}
-                </button>
-                
-                {isLoggingIn && (
-                    <button 
-                        onClick={onLoginRedirect}
-                        className="text-white text-xs underline opacity-70 hover:opacity-100"
-                    >
-                        If no response, try Redirect Mode / 如無反應請按此 (轉向登入)
-                    </button>
-                )}
-
-                {error && (
-                    <div className="bg-red-500/20 text-red-100 p-3 border-2 border-red-500 text-sm font-bold">
-                        Error: {error}
-                    </div>
-                )}
-                
-                <button 
-                    onClick={onGuest}
-                    className="w-full py-4 bg-stone-800 text-stone-400 border-4 border-stone-700 font-bold text-lg hover:text-white hover:border-stone-500 transition-colors"
-                >
-                    CONTINUE AS GUEST / 訪客進入
-                </button>
-            </div>
-
-            <p className="mt-12 text-stone-500 text-xs font-mono tracking-widest uppercase">
-                © 2025 GoDevelopWise • Powered by Firebase
-            </p>
-        </div>
-    </div>
-);
 
 // --- Profanity Filter ---
 const PROFANITY_LIST = [
@@ -430,6 +360,8 @@ const App: React.FC = () => {
      });
      return () => unsubscribe();
   }, []);
+
+  const [showEmailLogin, setShowEmailLogin] = useState(false);
 
   // Auto-sync TO cloud
   useEffect(() => {
@@ -766,17 +698,7 @@ const App: React.FC = () => {
   return (
     <div className="relative w-full h-full bg-[#e0d5c0] text-stone-900 font-sans overflow-hidden touch-none select-none">
       
-      {/* Login Screen Overlay */}
-      {!user && !isGuest && !authLoading && (
-        <LoginOverlay 
-            isLoggingIn={isLoggingIn} 
-            authLoading={authLoading}
-            error={loginError}
-            onLogin={loginWithGoogle} 
-            onLoginRedirect={loginWithGoogleRedirect}
-            onGuest={() => setIsGuest(true)} 
-        />
-      )}
+
 
       {/* Auth Loading Spinner (Optional) */}
       {authLoading && (
@@ -914,6 +836,11 @@ const App: React.FC = () => {
                                 </svg>
                                 GOOGLE LOGIN
                              </button>
+
+                             <button onClick={() => setShowEmailLogin(true)} className="col-span-2 py-3 bg-stone-800 hover:bg-stone-700 text-white border-2 border-stone-600 font-bold text-lg shadow-[3px_3px_0px_rgba(0,0,0,0.3)] active:translate-y-1 active:shadow-none transition-all flex items-center justify-center gap-2">
+                                ✉️ EMAIL LOGIN
+                             </button>
+
                              <button onClick={() => setStatus(GameStatus.MANUAL)} className="col-span-2 py-3 bg-stone-200 hover:bg-white text-stone-900 border-2 border-stone-900 font-bold text-lg shadow-[3px_3px_0px_rgba(0,0,0,0.3)] active:translate-y-1 active:shadow-none transition-all">
                                 📖 遊戲說明書
                              </button>
@@ -936,6 +863,10 @@ const App: React.FC = () => {
               <p className="text-stone-300/80 text-[10px] md:text-xs font-mono tracking-widest uppercase mt-1">Game design & code by Garfield Wong</p>
           </div>
         </div>
+      )}
+
+      {showEmailLogin && (
+        <Login onClose={() => setShowEmailLogin(false)} />
       )}
 
       {status === GameStatus.LEADERBOARD && (
