@@ -424,16 +424,25 @@ const App: React.FC = () => {
   }, [user, authLoading, highScore, totalBuns, upgrades, charStyle, activeFlags]);
 
   useEffect(() => {
+      // 1. Setup Persistence
       setPersistence(auth, browserLocalPersistence).catch(e => console.error("Persistence error:", e));
-      // Handle Redirect Results
-      getRedirectResult(auth)
-        .then((result) => {
-            if (result) console.log("Redirect Login Success:", result.user.displayName);
-        })
-        .catch((err) => {
-            console.error("Redirect Error:", err);
-            setLoginError(err.message);
-        });
+      
+      // 2. Handle Redirect Results
+      const handleRedirect = async () => {
+          try {
+              const result = await getRedirectResult(auth);
+              if (result) {
+                  console.log("Redirect Login Success:", result.user.displayName);
+                  setUser(result.user);
+              }
+          } catch (err: any) {
+              console.error("Redirect Error:", err);
+              setLoginError(err.message);
+          } finally {
+              setAuthLoading(false);
+          }
+      };
+      handleRedirect();
   }, []);
 
   const loginWithGoogle = async () => {
@@ -452,7 +461,6 @@ const App: React.FC = () => {
               // Another popup was opened
           } else {
               setLoginError(error.message || "Unknown error");
-              // Fallback to alert if needed, but we show it on UI now
           }
       } finally {
           setIsLoggingIn(false);
