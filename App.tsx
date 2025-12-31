@@ -686,6 +686,15 @@ const App: React.FC = () => {
     }
   };
 
+  const handlePlayerHit = (currentScore: number) => {
+      if (lives > 1) {
+          setLives(l => l - 1);
+      } else {
+          setLives(0);
+          handleGameOver(currentScore);
+      }
+  };
+
   const handleCoinCollected = (type: ItemType) => {
       if (type === 'bun') {
           let amount = effectiveUpgrades.doubleBuns ? 2 : 1;
@@ -801,7 +810,7 @@ const App: React.FC = () => {
                     initialBoost={initialBoost}
                     onGameOver={handleGameOver}
                     onWin={handleWin}
-                    onHit={(score) => setLives(l => l > 1 ? l - 1 : (handleGameOver(Math.floor(score)), 0))} 
+                    onHit={handlePlayerHit}
                     lives={lives}
                     onCoinCollected={handleCoinCollected} 
                     updateScoreUI={updateScoreUI}
