@@ -667,7 +667,10 @@ const App: React.FC = () => {
     if (status !== GameStatus.PLAYING || endTriggeredRef.current) return;
     endTriggeredRef.current = true;
     processEndGame(false, endScore);
-    if (!isGuest) {
+    if (user) {
+        // Restore player name from user profile or email
+        const nameToUse = user.displayName || (user.email ? user.email.split('@')[0] : "");
+        setPlayerName(filterProfanity(nameToUse).substring(0, 20));
         setShowLeaderboardInput(true);
     }
   };
@@ -676,7 +679,10 @@ const App: React.FC = () => {
     if (status !== GameStatus.PLAYING || endTriggeredRef.current) return;
     endTriggeredRef.current = true;
     processEndGame(true, endScore);
-    if (!isGuest) {
+    if (user) {
+        // Restore player name from user profile or email
+        const nameToUse = user.displayName || (user.email ? user.email.split('@')[0] : "");
+        setPlayerName(filterProfanity(nameToUse).substring(0, 20));
         setShowLeaderboardInput(true);
     }
   };

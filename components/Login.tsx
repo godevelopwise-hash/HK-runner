@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { auth } from '../firebase';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendEmailVerification, sendPasswordResetEmail } from 'firebase/auth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendEmailVerification, sendPasswordResetEmail, updateProfile } from 'firebase/auth';
 
 interface LoginProps {
   onClose: () => void;
@@ -28,6 +28,11 @@ const Login: React.FC<LoginProps> = ({ onClose }) => {
         setLoading(false);
       } else if (isRegistering) {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        // Set default display name from email
+        const defaultName = email.split('@')[0].substring(0, 15);
+        await updateProfile(userCredential.user, {
+            displayName: defaultName
+        });
         await sendEmailVerification(userCredential.user);
         setMessage(`Verification email sent to ${email}. Please check your inbox.`);
         setLoading(false);
