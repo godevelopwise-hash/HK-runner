@@ -601,7 +601,11 @@ const App: React.FC = () => {
   };
 
   const submitLeaderboardScore = async () => {
-      if (!playerName.trim() || isSubmitting) return;
+      console.log("Submit clicked, player:", playerName, "score:", finalScore);
+      if (!playerName.trim() || isSubmitting) {
+          console.warn("Submit blocked:", { name: playerName, isSubmitting });
+          return;
+      }
       setIsSubmitting(true);
       
       const sanitizedName = filterProfanity(playerName.trim()).substring(0, 20);
@@ -627,8 +631,8 @@ const App: React.FC = () => {
           };
           // 提交到 Firestore
           await addDoc(collection(db, 'leaderboard'), entryWithPhoto);
+          console.log("Score submitted successfully");
           
-          // 提交後重新讀取
           await fetchLeaderboard();
       } catch (error) {
           console.error("Error adding score: ", error);
@@ -1368,7 +1372,12 @@ const App: React.FC = () => {
         <div className={`absolute inset-0 z-40 overflow-y-auto touch-auto select-auto ${status === GameStatus.VICTORY ? 'bg-yellow-500/90' : 'bg-red-900/95'} text-white`}>
             <div className="min-h-full flex flex-col items-center justify-center p-6 landscape:p-4 lg:landscape:p-6 text-center animate-fade-in">
                 {showLeaderboardInput ? (
-                     <div className="w-full max-w-md bg-stone-900 border-4 border-white p-6 shadow-[8px_8px_0px_0px_rgba(255,255,255,0.2)] pointer-events-auto">
+                     <div 
+                         className="w-full max-w-md bg-stone-900 border-4 border-white p-6 shadow-[8px_8px_0px_0px_rgba(255,255,255,0.2)] pointer-events-auto"
+                         onPointerDown={(e) => e.stopPropagation()}
+                         onMouseDown={(e) => e.stopPropagation()}
+                         onTouchStart={(e) => e.stopPropagation()}
+                     >
                          <h2 className="text-4xl font-black mb-4 italic text-yellow-500">極限紀錄 NEW RECORD</h2>
                          <p className="text-xl font-bold mb-4 text-white">跑程 DISTANCE: <span className="text-yellow-400">{Math.floor(finalScore)}m</span></p>
                          
@@ -1377,16 +1386,17 @@ const App: React.FC = () => {
                               value={playerName}
                               onChange={(e) => setPlayerName(filterProfanity(e.target.value).substring(0, 20))}
                              placeholder="ENTER YOUR NAME"
-                             onPointerDown={(e) => e.stopPropagation()}
                              className="w-full bg-stone-800 text-white border-2 border-stone-600 p-3 mb-4 text-center font-bold text-xl uppercase placeholder:text-stone-600 focus:outline-none focus:border-yellow-500 select-text touch-auto pointer-events-auto"
                              maxLength={20}
                          />
                          
                           <button 
-                              onClick={submitLeaderboardScore}
-                              onPointerDown={(e) => e.stopPropagation()}
+                              onClick={() => {
+                                  console.log("Button onClick triggered");
+                                  submitLeaderboardScore();
+                              }}
                               disabled={!playerName.trim() || isSubmitting}
-                              className="w-full py-3 bg-yellow-500 text-stone-900 font-bold text-xl hover:bg-yellow-400 disabled:opacity-50 disabled:cursor-not-allowed pointer-events-auto active:translate-y-0.5 transition-all"
+                              className="w-full py-3 bg-yellow-500 text-stone-900 font-bold text-xl hover:bg-yellow-400 disabled:opacity-50 disabled:cursor-not-allowed pointer-events-auto active:translate-y-0.5 transition-all shadow-[0_4px_0_0_#b45309] active:shadow-none"
                           >
                               {isSubmitting ? "提交中 SUBMITTING..." : "提交 SUBMIT"}
                           </button>
