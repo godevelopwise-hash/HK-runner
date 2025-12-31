@@ -210,9 +210,8 @@ const GameScene: React.FC<{
   }, [currentRegion, scene]);
 
   useEffect(() => {
-    Synth.init();
     // Default initial fog
-    scene.fog = new THREE.FogExp2('#4a2c4a', 0.015);
+    if (scene) scene.fog = new THREE.FogExp2('#4a2c4a', 0.015);
   }, [scene]);
 
   useFrame((state, delta) => {

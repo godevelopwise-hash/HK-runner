@@ -184,7 +184,7 @@ class Synth {
   }
 
   updateBGM(status: string) {
-    if (!this.ctx) this.init();
+    if (!this.ctx) return; // Prevent automatic init
     if (this.currentPattern === status) return;
     this.stopBGM();
     this.currentPattern = status;
