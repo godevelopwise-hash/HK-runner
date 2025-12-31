@@ -183,8 +183,9 @@ const GameScene: React.FC<{
         camera.position.set(0, 5, 12);
         scoreRef.current = 0;
         if (initialBoost) {
-            powerUpTimeLeft.current = POWERUP_DURATION;
-            magnetTimeLeft.current = MAGNET_DURATION;
+            const suitBonus = charStyle.outfit === 'iron' ? 3000 : 0;
+            powerUpTimeLeft.current = POWERUP_DURATION + suitBonus;
+            magnetTimeLeft.current = MAGNET_DURATION + suitBonus;
             setIsPoweredUp(true); setIsInvincible(true); setIsMagnetActive(true);
             setActiveItemType('both'); setSpeed(MAX_SPEED * 1.5);
         } else {
