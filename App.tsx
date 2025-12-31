@@ -1368,7 +1368,7 @@ const App: React.FC = () => {
         <div className={`absolute inset-0 z-40 overflow-y-auto touch-auto select-auto ${status === GameStatus.VICTORY ? 'bg-yellow-500/90' : 'bg-red-900/95'} text-white`}>
             <div className="min-h-full flex flex-col items-center justify-center p-6 landscape:p-4 lg:landscape:p-6 text-center animate-fade-in">
                 {showLeaderboardInput ? (
-                     <div className="w-full max-w-md bg-stone-900 border-4 border-white p-6 shadow-[8px_8px_0px_0px_rgba(255,255,255,0.2)]">
+                     <div className="w-full max-w-md bg-stone-900 border-4 border-white p-6 shadow-[8px_8px_0px_0px_rgba(255,255,255,0.2)] pointer-events-auto">
                          <h2 className="text-4xl font-black mb-4 italic text-yellow-500">極限紀錄 NEW RECORD</h2>
                          <p className="text-xl font-bold mb-4 text-white">跑程 DISTANCE: <span className="text-yellow-400">{Math.floor(finalScore)}m</span></p>
                          
@@ -1382,13 +1382,14 @@ const App: React.FC = () => {
                              maxLength={20}
                          />
                          
-                         <button 
-                             onClick={submitLeaderboardScore}
-                             disabled={!playerName.trim()}
-                             className="w-full py-3 bg-yellow-500 text-stone-900 font-bold text-xl hover:bg-yellow-400 disabled:opacity-50 disabled:cursor-not-allowed"
-                         >
-                             提交 SUBMIT
-                         </button>
+                          <button 
+                              onClick={submitLeaderboardScore}
+                              onPointerDown={(e) => e.stopPropagation()}
+                              disabled={!playerName.trim() || isSubmitting}
+                              className="w-full py-3 bg-yellow-500 text-stone-900 font-bold text-xl hover:bg-yellow-400 disabled:opacity-50 disabled:cursor-not-allowed pointer-events-auto active:translate-y-0.5 transition-all"
+                          >
+                              {isSubmitting ? "提交中 SUBMITTING..." : "提交 SUBMIT"}
+                          </button>
                      </div>
                 ) : (
                 /* Content Container with Layout Switching */
