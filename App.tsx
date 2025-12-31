@@ -407,8 +407,10 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const handleFirstInteraction = () => {
-      setAudioAllowed(true);
+      // Synchronous init on user gesture
+      Synth.init(); 
       Synth.resume();
+      setAudioAllowed(true);
       window.removeEventListener('pointerdown', handleFirstInteraction);
       window.removeEventListener('keydown', handleFirstInteraction);
     };

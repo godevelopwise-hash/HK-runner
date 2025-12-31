@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .touch-none {
+    touch-action: none;
+  }
+  .select-none {
+    user-select: none;
+    -webkit-user-select: none;
+  }
+}
