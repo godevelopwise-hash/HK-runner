@@ -256,6 +256,7 @@ const ColorPicker = ({ label, current, colors, onSelect }: { label: string, curr
 );
 
 const App: React.FC = () => {
+  console.log("HK Runner Version 0.2 - Smart Merge & Logout Fix");
   const [status, setStatus] = useState<GameStatus>(GameStatus.MENU);
   const [gameId, setGameId] = useState(0); 
   const [highScore, setHighScore] = useState(() => parseInt(localStorage.getItem('hk_runner_highscore') || '0'));
