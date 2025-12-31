@@ -405,18 +405,30 @@ const App: React.FC = () => {
   const [showEmailLogin, setShowEmailLogin] = useState(false);
 
   // Auto-sync TO cloud
+  const saveUserDataToCloud = async (force: boolean = false, overrides: any = {}) => {
+      if (!user) return;
+      try {
+          const userRef = doc(db, 'users', user.uid);
+          const dataToSave = {
+              highScore: overrides.highScore ?? highScore,
+              totalBuns: overrides.totalBuns ?? totalBuns,
+              upgrades: overrides.upgrades ?? upgrades,
+              charStyle: overrides.charStyle ?? charStyle,
+              activeFlags: overrides.activeFlags ?? activeFlags,
+              lastUpdated: serverTimestamp()
+          };
+          await setDoc(userRef, dataToSave, { merge: true });
+          if(force) console.log("Force saved to cloud:", user.uid);
+      } catch (err) {
+          console.error("Cloud sync failed:", err);
+      }
+  };
+
+  // Auto-sync TO cloud
   useEffect(() => {
      if (!user || authLoading) return;
      const timeoutId = setTimeout(() => {
-         const userRef = doc(db, 'users', user.uid);
-         setDoc(userRef, {
-             highScore,
-             totalBuns,
-             upgrades,
-             charStyle,
-             activeFlags,
-             lastUpdated: serverTimestamp()
-         }, { merge: true }).catch(err => console.error("Cloud sync failed:", err));
+         saveUserDataToCloud();
      }, 3000);
      return () => clearTimeout(timeoutId);
   }, [user, authLoading, highScore, totalBuns, upgrades, charStyle, activeFlags]);
@@ -472,6 +484,9 @@ const App: React.FC = () => {
 
   const logout = async () => {
       try {
+          if (user) {
+              await saveUserDataToCloud(true); // Force save before logout
+          }
           await signOut(auth);
           
           // 1. Clear Local Storage (Game Progress)
@@ -640,9 +655,12 @@ const App: React.FC = () => {
   };
 
   const processEndGame = (isWin: boolean, endScore: number) => {
+      const overrides: any = {};
+      
       if (endScore > highScore) {
         setHighScore(endScore);
         localStorage.setItem('hk_runner_highscore', Math.floor(endScore).toString());
+        overrides.highScore = endScore;
       }
 
       setFinalScore(endScore);
@@ -652,6 +670,7 @@ const App: React.FC = () => {
           setUpgrades(newUpgrades);
           localStorage.setItem('hk_runner_upgrades', JSON.stringify(newUpgrades));
           setNewUnlock("破壞之王套裝 DESTRUCTION KING OUTFIT");
+          overrides.upgrades = newUpgrades;
       }
 
       const rewards = calculateFinalRewards();
@@ -660,6 +679,9 @@ const App: React.FC = () => {
       
       localStorage.setItem('hk_runner_buns', newTotal.toString());
       setTotalBuns(newTotal);
+      overrides.totalBuns = newTotal;
+      
+      saveUserDataToCloud(true, overrides);
       setStatus(isWin ? GameStatus.VICTORY : GameStatus.GAMEOVER);
   };
 
@@ -741,6 +763,7 @@ const App: React.FC = () => {
           setActiveFlags(newFlags);
           localStorage.setItem('hk_runner_active_flags', JSON.stringify(newFlags));
 
+          saveUserDataToCloud(true, { totalBuns: newBuns, upgrades: newUpgrades, activeFlags: newFlags });
           Synth.playCoin();
       }
   };
@@ -751,6 +774,8 @@ const App: React.FC = () => {
       const newFlags = { ...activeFlags, [key]: !current };
       setActiveFlags(newFlags);
       localStorage.setItem('hk_runner_active_flags', JSON.stringify(newFlags));
+      
+      saveUserDataToCloud(true, { activeFlags: newFlags });
       Synth.playCoin();
   };
 
@@ -758,6 +783,8 @@ const App: React.FC = () => {
       const newStyle = { ...charStyle, [part]: value };
       setCharStyle(newStyle);
       localStorage.setItem('hk_runner_charstyle', JSON.stringify(newStyle));
+      
+      saveUserDataToCloud(true, { charStyle: newStyle });
   };
 
   const handleRegionChange = (region: RegionId) => {
