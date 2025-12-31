@@ -664,6 +664,19 @@ const TrackManager: React.FC<TrackManagerProps> = ({ gameId, speed, gameStatus, 
   const segmentsSinceTransitionRef = useRef(0);
   const SEGMENTS_PER_REGION = 15; 
   
+  // Callbacks Refs to avoid stale closures in useFrame
+  const onCollisionRef = useRef(onCollision);
+  const onPuddleRef = useRef(onPuddle);
+  const onCoinCollectedRef = useRef(onCoinCollected);
+  const onObstacleClashRef = useRef(onObstacleClash);
+
+  useEffect(() => {
+      onCollisionRef.current = onCollision;
+      onPuddleRef.current = onPuddle;
+      onCoinCollectedRef.current = onCoinCollected;
+      onObstacleClashRef.current = onObstacleClash;
+  }, [onCollision, onPuddle, onCoinCollected, onObstacleClash]);
+
   // Ambulance Spawn logic vars
   const distanceSinceLastAmbulanceRef = useRef(0);
   const nextAmbulanceDistanceRef = useRef(2000 + Math.random() * 500);
@@ -1286,7 +1299,7 @@ const TrackManager: React.FC<TrackManagerProps> = ({ gameId, speed, gameStatus, 
               if (obs.type === 'puddle') {
                   if (py < 0.4) {
                       Synth.playSplash();
-                      onPuddle(new THREE.Vector3(obsX, 0, obsZ));
+                      onPuddleRef.current(new THREE.Vector3(obsX, 0, obsZ));
                   }
               } else if (obs.type === 'bird') {
                   if (!isInvincible && py > 1.8) {
@@ -1295,15 +1308,15 @@ const TrackManager: React.FC<TrackManagerProps> = ({ gameId, speed, gameStatus, 
                       obs.hitVelocity = new THREE.Vector3(0, 5, -20);
                       obs.hitRotation = new THREE.Vector3(Math.random() * 10, Math.random() * 10, 0);
                       obs.hitTime = 0;
-                      onObstacleClash(new THREE.Vector3(obsX, 3.0, obsZ));
-                      onCollision();
+                      onObstacleClashRef.current(new THREE.Vector3(obsX, 3.0, obsZ));
+                      onCollisionRef.current();
                   }
               } else if (obs.type === 'ambulance') {
                   // Special logic: Ambulance is UNBREAKABLE
                   // It forces a collision event regardless of invincibility
                   // It does NOT get knocked away
                   Synth.playMetalHit(); // Or a heavy crash sound
-                  onCollision(); 
+                  onCollisionRef.current(); 
                   // Do NOT set obs.isHit = true;
               } else {
                   if (isInvincible) {
@@ -1320,7 +1333,7 @@ const TrackManager: React.FC<TrackManagerProps> = ({ gameId, speed, gameStatus, 
                       obs.hitVelocity = new THREE.Vector3((Math.random() - 0.5) * 20, 15 + Math.random() * 10, -40 - speed * 30);
                       obs.hitRotation = new THREE.Vector3(Math.random() * 15, Math.random() * 15, Math.random() * 15);
                       obs.hitTime = 0;
-                      onObstacleClash(new THREE.Vector3(obsX, 1.5, obsZ));
+                      onObstacleClashRef.current(new THREE.Vector3(obsX, 1.5, obsZ));
                   } else {
                       let hit = false;
                       if (obs.type === 'scaffold' && playerState !== PlayerState.SLIDING) hit = true;
@@ -1337,7 +1350,7 @@ const TrackManager: React.FC<TrackManagerProps> = ({ gameId, speed, gameStatus, 
                           else if (['waterhorse', 'traffic_cone', 'neon_sign'].includes(obs.type)) Synth.playPlasticHit();
                           else Synth.playWoodHit();
 
-                          onCollision();
+                          onCollisionRef.current();
                           obs.isHit = true;
                       }
                   }
@@ -1360,7 +1373,7 @@ const TrackManager: React.FC<TrackManagerProps> = ({ gameId, speed, gameStatus, 
               coin.attractionTime = (coin.attractionTime || 0) + delta;
               if (coin.attractionTime > 0.1) {
                   coin.collected = true;
-                  onCoinCollected(coin.type, new THREE.Vector3(coin.posX, coin.posY, coin.posZ));
+                  onCoinCollectedRef.current(coin.type, new THREE.Vector3(coin.posX, coin.posY, coin.posZ));
                   return; 
               }
               const cX = coin.posX ?? 0;
@@ -1412,7 +1425,7 @@ const TrackManager: React.FC<TrackManagerProps> = ({ gameId, speed, gameStatus, 
           if (dx < hitRadiusX && dy < hitRadiusY && dz < (hitRadiusZ + moveStep)) {
               if (isSpecialItem || isPlayerAtCollectionHeight || coin.isAttracted || isPoweredUp) {
                   coin.collected = true;
-                  onCoinCollected(coin.type, new THREE.Vector3(coinWorldX, coinWorldY, coinWorldZ));
+                  onCoinCollectedRef.current(coin.type, new THREE.Vector3(coinWorldX, coinWorldY, coinWorldZ));
               }
           }
       });
