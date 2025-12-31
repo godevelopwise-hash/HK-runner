@@ -623,8 +623,8 @@ const App: React.FC = () => {
           // 提交到 Firestore
           const entryWithPhoto = {
               ...newEntry,
-              photoURL: user?.photoURL || undefined,
-              uid: user?.uid, // Bind UID
+              photoURL: user?.photoURL ?? null,
+              uid: user?.uid ?? null, // Bind UID (ensure not undefined)
               timestamp: serverTimestamp()
           };
           // 提交到 Firestore
