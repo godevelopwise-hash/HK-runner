@@ -43,6 +43,12 @@ class Synth {
     }
   }
 
+  resume() {
+    if (this.ctx && this.ctx.state === 'suspended') {
+      this.ctx.resume();
+    }
+  }
+
   private playTone(freq: number, type: OscillatorType, duration: number, rampTo?: number, gainVal: number = 0.5, targetGain: GainNode | null = null) {
     if (!this.enabled || !this.ctx || !this.masterGain) return;
     if (this.ctx.state === 'suspended') this.ctx.resume();

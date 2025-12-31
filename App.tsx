@@ -404,6 +404,22 @@ const App: React.FC = () => {
      return () => unsubscribe();
   }, [highScore, totalBuns, upgrades, charStyle, activeFlags]); // Dependencies added to ensure we have latest local state when auth changes
 
+  useEffect(() => {
+    const handleFirstInteraction = () => {
+      Synth.resume();
+      window.removeEventListener('pointerdown', handleFirstInteraction);
+      window.removeEventListener('keydown', handleFirstInteraction);
+    };
+
+    window.addEventListener('pointerdown', handleFirstInteraction);
+    window.addEventListener('keydown', handleFirstInteraction);
+
+    return () => {
+        window.removeEventListener('pointerdown', handleFirstInteraction);
+        window.removeEventListener('keydown', handleFirstInteraction);
+    };
+  }, []);
+
   const [showEmailLogin, setShowEmailLogin] = useState(false);
 
   // Auto-sync TO cloud
