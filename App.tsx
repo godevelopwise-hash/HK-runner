@@ -611,6 +611,7 @@ const App: React.FC = () => {
       setIsSubmitting(true);
       
       const sanitizedName = filterProfanity(playerName.trim()).substring(0, 20);
+      localStorage.setItem('hk_runner_lastname', sanitizedName);
       const scoreValue = Math.floor(finalScore);
           const now = new Date();
           const formattedDate = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()}`;
@@ -694,7 +695,8 @@ const App: React.FC = () => {
     processEndGame(false, endScore);
     if (user) {
         // Restore player name from user profile or email
-        const nameToUse = user.displayName || (user.email ? user.email.split('@')[0] : "");
+        const savedName = localStorage.getItem('hk_runner_lastname');
+        const nameToUse = savedName || user.displayName || (user.email ? user.email.split('@')[0] : "");
         setPlayerName(filterProfanity(nameToUse).substring(0, 20));
         setShowLeaderboardInput(true);
     }
@@ -706,7 +708,8 @@ const App: React.FC = () => {
     processEndGame(true, endScore);
     if (user) {
         // Restore player name from user profile or email
-        const nameToUse = user.displayName || (user.email ? user.email.split('@')[0] : "");
+        const savedName = localStorage.getItem('hk_runner_lastname');
+        const nameToUse = savedName || user.displayName || (user.email ? user.email.split('@')[0] : "");
         setPlayerName(filterProfanity(nameToUse).substring(0, 20));
         setShowLeaderboardInput(true);
     }
@@ -1381,7 +1384,7 @@ const App: React.FC = () => {
                               value={playerName}
                               onChange={(e) => setPlayerName(filterProfanity(e.target.value).substring(0, 20))}
                              placeholder="ENTER YOUR NAME"
-                             className="w-full bg-stone-800 text-white border-2 border-stone-600 p-3 mb-4 text-center font-bold text-xl uppercase placeholder:text-stone-600 focus:outline-none focus:border-yellow-500"
+                             className="w-full bg-stone-800 text-white border-2 border-stone-600 p-3 mb-4 text-center font-bold text-xl uppercase placeholder:text-stone-600 focus:outline-none focus:border-yellow-500 select-text touch-auto pointer-events-auto"
                              maxLength={20}
                          />
                          
