@@ -331,79 +331,47 @@ const App: React.FC = () => {
                  setPlayerName(filterProfanity(currentUser.displayName).substring(0, 20));
              }
              
-             // Smart Merge Logic
+             // Initial Sync ONLY if we don't have local data or it's a fresh login
              try {
                 const userRef = doc(db, 'users', currentUser.uid);
                 const docSnap = await getDoc(userRef);
                 
-                let cloudData: any = {};
                 if (docSnap.exists()) {
-                    cloudData = docSnap.data();
+                    const cloudData = docSnap.data();
+                    
+                    // Merge logic
+                    const mergedHighScore = Math.max(highScore, cloudData.highScore || 0);
+                    const mergedTotalBuns = Math.max(totalBuns, cloudData.totalBuns || 0);
+                    
+                    const mergedUpgrades = { ...upgrades };
+                    if (cloudData.upgrades) {
+                        (Object.keys(cloudData.upgrades) as Array<keyof Upgrades>).forEach(key => {
+                            if (cloudData.upgrades[key]) mergedUpgrades[key] = true;
+                        });
+                    }
+
+                    const mergedCharStyle = cloudData.charStyle || charStyle;
+                    const mergedActiveFlags = cloudData.activeFlags || activeFlags;
+
+                    // Update Local
+                    setHighScore(mergedHighScore);
+                    localStorage.setItem('hk_runner_highscore', mergedHighScore.toString());
+                    setTotalBuns(mergedTotalBuns);
+                    localStorage.setItem('hk_runner_buns', mergedTotalBuns.toString());
+                    setUpgrades(mergedUpgrades);
+                    localStorage.setItem('hk_runner_upgrades', JSON.stringify(mergedUpgrades));
+                    setCharStyle(mergedCharStyle);
+                    localStorage.setItem('hk_runner_charstyle', JSON.stringify(mergedCharStyle));
+                    setActiveFlags(mergedActiveFlags);
+                    localStorage.setItem('hk_runner_active_flags', JSON.stringify(mergedActiveFlags));
                 }
-
-                // 1. High Score: Max
-                const mergedHighScore = Math.max(highScore, cloudData.highScore || 0);
-
-                // 2. Total Buns: Max (Benefit of the doubt)
-                const mergedTotalBuns = Math.max(totalBuns, cloudData.totalBuns || 0);
-
-                // 3. Upgrades: Union (OR logic)
-                const mergedUpgrades = { ...upgrades };
-                if (cloudData.upgrades) {
-                    (Object.keys(cloudData.upgrades) as Array<keyof Upgrades>).forEach(key => {
-                        if (cloudData.upgrades[key]) {
-                            mergedUpgrades[key] = true;
-                        }
-                    });
-                }
-                // Also merge local improvements? 
-                // We already initialized mergedUpgrades with local `upgrades`.
-                // So if local has it, it stays true. If cloud has it, it becomes true.
-
-                // 4. Character Style: 
-                // If cloud has data, we generally prefer it, UNLESS we want to keep local changes?
-                // Let's keep local style if it's different from default? 
-                // Standardization: Use Cloud style if available, otherwise keep local.
-                // Or maybe just keep Cloud style to avoid confusion "Where is my panda suit?"
-                const mergedCharStyle = cloudData.charStyle || charStyle;
-
-                // 5. Active Flags: Union-ish? Or just Cloud?
-                // Let's use Cloud flags if available, merging is complex for "active" state.
-                const mergedActiveFlags = cloudData.activeFlags || activeFlags;
-
-                // Update Local State
-                setHighScore(mergedHighScore);
-                localStorage.setItem('hk_runner_highscore', mergedHighScore.toString());
-
-                setTotalBuns(mergedTotalBuns);
-                localStorage.setItem('hk_runner_buns', mergedTotalBuns.toString());
-
-                setUpgrades(mergedUpgrades);
-                localStorage.setItem('hk_runner_upgrades', JSON.stringify(mergedUpgrades));
-
-                setCharStyle(mergedCharStyle);
-                localStorage.setItem('hk_runner_charstyle', JSON.stringify(mergedCharStyle));
-
-                setActiveFlags(mergedActiveFlags);
-                localStorage.setItem('hk_runner_active_flags', JSON.stringify(mergedActiveFlags));
-
-                // Sync Merged Result BACK to Cloud
-                await setDoc(userRef, {
-                    highScore: mergedHighScore,
-                    totalBuns: mergedTotalBuns,
-                    upgrades: mergedUpgrades,
-                    charStyle: mergedCharStyle,
-                    activeFlags: mergedActiveFlags,
-                    lastUpdated: serverTimestamp()
-                }, { merge: true });
-
              } catch (err) {
-                 console.error("Failed to sync cloud progress:", err);
+                 console.error("Initial cloud sync failed:", err);
              }
          }
      });
      return () => unsubscribe();
-  }, [highScore, totalBuns, upgrades, charStyle, activeFlags]); // Dependencies added to ensure we have latest local state when auth changes
+  }, [auth]); // Reduced dependencies to prevent logout/sync loops
 
   useEffect(() => {
     const handleFirstInteraction = () => {
@@ -505,36 +473,33 @@ const App: React.FC = () => {
   };
 
   const logout = async () => {
-      try {
-          if (user) {
-              await saveUserDataToCloud(true); // Force save before logout
-          }
-          await signOut(auth);
-          
-          // 1. Clear Local Storage (Game Progress)
-          localStorage.removeItem('hk_runner_highscore');
-          localStorage.removeItem('hk_runner_buns');
-          localStorage.removeItem('hk_runner_upgrades');
-          localStorage.removeItem('hk_runner_charstyle');
-          localStorage.removeItem('hk_runner_active_flags');
-          // Note: We keep 'hk_runner_settings' (volume/quality) as that's device preference
+       try {
+           // 1. Immediately reset state for UI feedback
+           setUser(null);
+           setIsGuest(false);
+           setHighScore(0);
+           setTotalBuns(100); 
+           setUpgrades({ extraLife: false, doubleBuns: false, jetStart: false, strongMagnet: false, skinPanda: false, skinIron: false, skinDestruction: false });
+           setCharStyle({ skin: "#e0ac69", shirt: "#f0f0f0", shorts: "#1e3a8a", outfit: 'casual' });
+           setActiveFlags({});
+           setPlayerName("");
 
-          // 2. Reset State to Defaults (Guest Mode)
-          setHighScore(0);
-          setTotalBuns(100); 
-          setUpgrades({ extraLife: false, doubleBuns: false, jetStart: false, strongMagnet: false, skinPanda: false, skinIron: false, skinDestruction: false });
-          setCharStyle({ skin: "#e0ac69", shirt: "#f0f0f0", shorts: "#1e3a8a", outfit: 'casual' });
-          setActiveFlags({});
-          
-          setPlayerName("");
-          setUser(null); // Ensure UI updates immediately
-          
-          // Optional: Show a "Logged Out" confirmation? Current UI doesn't have toast yet.
-          console.log("Logged out and cleaned up local progress.");
-      } catch (error) {
-          console.error("Logout failed:", error);
-      }
-  };
+           // 2. Clear Local Storage
+           const keysToClear = ['hk_runner_highscore', 'hk_runner_buns', 'hk_runner_upgrades', 'hk_runner_charstyle', 'hk_runner_active_flags'];
+           keysToClear.forEach(k => localStorage.removeItem(k));
+
+           // 3. Attempt cloud sync (non-blocking)
+           if (auth.currentUser) {
+               saveUserDataToCloud(true).catch(e => console.warn("Final sync before logout skipped:", e));
+           }
+
+           // 4. Perform actual sign out
+           await signOut(auth);
+           console.log("Logged out successfully.");
+       } catch (error) {
+           console.error("Logout process failed:", error);
+       }
+   };
 
   const fetchLeaderboard = useCallback(async () => {
       try {
