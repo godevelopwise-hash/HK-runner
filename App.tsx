@@ -188,7 +188,7 @@ const WardrobeScene = ({ charStyle, upgrades }: { charStyle: CharacterStyle, upg
 
     return (
         <>
-            <color attach="background" args={['#e0d5c0']} />
+            <color attach="background" args={['#1a1a1a']} />
             <ambientLight intensity={0.5} />
             <pointLight position={[10, 10, 10]} intensity={1} castShadow />
             <spotLight position={[-10, 10, -10]} intensity={0.5} />
@@ -202,6 +202,9 @@ const WardrobeScene = ({ charStyle, upgrades }: { charStyle: CharacterStyle, upg
                     charStyle={charStyle} 
                 />
             </group>
+            {// Add a directional light to help illuminate the model in preview
+             }
+             <directionalLight position={[0, 5, 5]} intensity={0.5} />
             <ContactShadows position={[playerPos.x, playerPos.y, playerPos.z]} opacity={0.4} scale={10} blur={2} far={4} />
             <OrbitControls enableZoom={false} enableRotate={true} enablePan={false} target={targetPos} />
         </>
@@ -209,28 +212,28 @@ const WardrobeScene = ({ charStyle, upgrades }: { charStyle: CharacterStyle, upg
 };
 
 const ShopItem = ({ name, desc, cost, owned, active, onBuy, onToggle, special }: { name: string, desc: string, cost: number, owned: boolean, active?: boolean, onBuy: () => void, onToggle?: () => void, special?: boolean }) => (
-    <div className={`p-4 border-4 border-stone-900 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.15)] flex flex-col justify-between ${owned ? (active === false ? 'bg-gray-200' : 'bg-green-100') : special ? 'bg-yellow-50' : 'bg-white'}`}>
+    <div className={`p-4 border border-white/10 flex flex-col justify-between transition-all duration-300 ${owned ? (active === false ? 'bg-stone-800/50 grayscale' : 'card-glass bg-gradient-to-br from-white/10 to-white/5') : special ? 'bg-gradient-to-br from-yellow-900/40 to-black border-yellow-500/30' : 'card-glass'}`}>
         <div>
-            <h3 className="font-bold text-xl mb-1 flex items-center gap-2">
+            <h3 className="font-hk-serif font-bold text-xl mb-1 flex items-center gap-2 text-white">
                 {name} 
-                {special && <span className="bg-red-600 text-white text-xs px-1.5 py-0.5 rounded-full">HOT</span>}
+                {special && <span className="bg-[var(--hk-taxi-red)] text-white text-[10px] px-1.5 py-0.5 rounded font-sans tracking-wider animate-pulse">HOT</span>}
                 {owned && !special && (
-                    <span className={`text-xs px-1.5 py-0.5 rounded border-2 ${active !== false ? 'bg-green-500 text-white border-green-700' : 'bg-stone-400 text-white border-stone-600'}`}>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded border ${active !== false ? 'bg-[var(--hk-minibus-green)] text-white border-green-400' : 'bg-stone-700 text-stone-400 border-stone-600'}`}>
                         {active !== false ? 'ACTIVE' : 'OFF'}
                     </span>
                 )}
             </h3>
-            <p className="text-sm text-stone-600 font-medium mb-4">{desc}</p>
+            <p className="text-sm text-stone-300 mb-4 font-hk-sans font-light tracking-wide">{desc}</p>
         </div>
         <div className="flex justify-between items-center">
-            <span className="font-bold text-lg flex items-center gap-2"><PineappleBunIcon className="w-5 h-5" /> {cost}</span>
+            <span className="font-bold text-lg flex items-center gap-2 text-[var(--hk-colonial-cream)]"><PineappleBunIcon className="w-5 h-5 drop-shadow-[0_0_5px_rgba(255,215,0,0.5)]" /> {cost}</span>
             <button 
                 onClick={owned ? (onToggle || undefined) : onBuy} 
                 disabled={owned && !onToggle}
-                className={`px-4 py-1 font-bold border-2 border-stone-900 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.2)] active:translate-y-0.5 active:shadow-none transition-all ${
-                    !owned ? 'bg-stone-900 text-white hover:bg-stone-700' :
-                    onToggle ? (active !== false ? 'bg-green-500 text-white hover:bg-green-600' : 'bg-stone-400 text-white hover:bg-stone-500') :
-                    'bg-green-500 text-white cursor-default'
+                className={`px-4 py-1.5 font-bold text-sm tracking-widest uppercase transition-all shadow-lg ${
+                    !owned ? 'btn-street-sign border-white' :
+                    onToggle ? (active !== false ? 'bg-transparent border border-green-400 text-green-400 hover:bg-green-400/10' : 'bg-transparent border border-stone-500 text-stone-500 hover:bg-white/5') :
+                    'text-stone-500 cursor-default'
                 }`}
             >
                 {!owned ? 'BUY' : (onToggle ? (active !== false ? 'ENABLED' : 'DISABLED') : 'OWNED')}
@@ -241,7 +244,7 @@ const ShopItem = ({ name, desc, cost, owned, active, onBuy, onToggle, special }:
 
 const ColorPicker = ({ label, current, colors, onSelect }: { label: string, current: string, colors: string[], onSelect: (c: string) => void }) => (
     <div>
-        <h4 className="font-bold text-lg mb-2">{label}</h4>
+        <h4 className="font-bold text-lg mb-2 border-b-2 border-stone-200 pb-1">{label}</h4>
         <div className="flex flex-wrap gap-3">
             {colors.map(c => (
                 <button 
@@ -393,6 +396,7 @@ const App: React.FC = () => {
   }, []);
 
   const [showEmailLogin, setShowEmailLogin] = useState(false);
+  const [showCancelConfirmation, setShowCancelConfirmation] = useState(false);
 
   // Auto-sync TO cloud
   const saveUserDataToCloud = async (force: boolean = false, overrides: any = {}) => {
@@ -817,7 +821,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="relative w-full h-full bg-[#e0d5c0] text-stone-900 font-sans overflow-hidden">
+    <div className="relative w-full h-full bg-[var(--bg-primary)] text-stone-100 font-hk-sans overflow-hidden bg-mosaic">
       
 
       {/* Auth Loading Spinner (Optional) */}
@@ -873,43 +877,43 @@ const App: React.FC = () => {
           <div className="flex flex-col landscape:flex-row items-center justify-center gap-6 landscape:gap-16 w-full max-w-md landscape:max-w-4xl transition-all duration-300 landscape:scale-[0.85]">
             
             {/* Title Card */}
-            <div className="relative pointer-events-auto transform -rotate-1 hover:rotate-0 transition-transform duration-300 group cursor-default shrink-0">
+            <div className="relative pointer-events-auto transform hover:scale-105 transition-transform duration-500 cursor-default shrink-0 z-50">
                 
-                {/* Outer White Border + Shadow */}
-                <div className="relative bg-[#1a1a1a] p-1 shadow-[8px_8px_0px_rgba(0,0,0,0.5)] border-2 border-white/90">
+                {/* Neon Glow Behind */}
+                <div className="absolute inset-0 bg-[var(--hk-neon-pink)] blur-[60px] opacity-40 animate-pulse"></div>
+
+                {/* Main Title Container */}
+                <div className="relative bg-black/80 border border-white/20 p-2 backdrop-blur-md">
                     
-                    {/* Yellow Corner Accents */}
-                    <div className="absolute -top-1 -left-1 w-6 h-6 border-t-4 border-l-4 border-yellow-400 z-20"></div>
-                    <div className="absolute -top-1 -right-1 w-6 h-6 border-t-4 border-r-4 border-yellow-400 z-20"></div>
-                    <div className="absolute -bottom-1 -left-1 w-6 h-6 border-b-4 border-l-4 border-yellow-400 z-20"></div>
-                    <div className="absolute -bottom-1 -right-1 w-6 h-6 border-b-4 border-r-4 border-yellow-400 z-20"></div>
+                    {/* Corner Accents (Neon Style) */}
+                    <div className="absolute -top-2 -left-2 w-8 h-8 border-t-2 border-l-2 border-[var(--hk-neon-pink)]"></div>
+                    <div className="absolute -bottom-2 -right-2 w-8 h-8 border-b-2 border-r-2 border-[var(--hk-neon-pink)]"></div>
 
-                    {/* Inner Content Area */}
-                    <div className="border border-dashed border-stone-500 bg-[#221f1f] px-8 py-8 md:px-12 md:py-10 flex flex-col items-center relative overflow-hidden">
+                    {/* Inner Content */}
+                    <div className="bg-mosaic px-6 py-8 md:px-10 md:py-12 flex flex-col items-center relative overflow-hidden border border-white/5 w-full">
                         
-                        {/* Background Texture/Gradient */}
-                        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-red-900/10 pointer-events-none"></div>
+                        {/* Vertical Neon Lines */}
+                        <div className="absolute left-4 top-0 bottom-0 w-[1px] bg-gradient-to-b from-transparent via-[var(--hk-neon-pink)] to-transparent opacity-50"></div>
+                        <div className="absolute right-4 top-0 bottom-0 w-[1px] bg-gradient-to-b from-transparent via-[var(--hk-royal-blue)] to-transparent opacity-50"></div>
 
-                        {/* Main Title - Layered Effect */}
-                        <div className="relative z-10 mb-6">
-                            {/* Shadow Layer - FIXED: Removed scale, used offset */}
-                            <h1 className="text-6xl md:text-8xl font-black italic tracking-tighter text-[#991b1b] absolute top-2 left-2 opacity-80 select-none blur-[0.5px] whitespace-nowrap">
+                        {/* Main Title - Layered Neon - Adjusted sizes for better fit */}
+                        <div className="relative z-10 mb-6 md:mb-8 mix-blend-screen text-center">
+                            <h1 className="text-5xl landscape:text-6xl md:text-9xl font-hk-serif font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white via-pink-200 to-white drop-shadow-[0_0_15px_rgba(255,0,144,0.8)] whitespace-nowrap">
                                 HK RUNNER
                             </h1>
-                            {/* Main Layer */}
-                            <h1 className="relative text-6xl md:text-8xl font-black italic tracking-tighter text-stone-100 drop-shadow-2xl z-10 mix-blend-normal whitespace-nowrap">
+                            <h1 className="absolute top-0 left-0 w-full text-5xl landscape:text-6xl md:text-9xl font-hk-serif font-black tracking-tighter text-[var(--hk-neon-pink)] blur-[2px] opacity-70 whitespace-nowrap -z-10">
                                 HK RUNNER
                             </h1>
                         </div>
 
-                        {/* Subtitle Badge - Skewed Box */}
-                        <div className="relative z-10 transform -rotate-1 mt-2">
-                             {/* Red Shadow Box */}
-                             <div className="absolute inset-0 bg-[#b91c1c] transform translate-x-1.5 translate-y-1.5 skew-x-[-10deg]"></div>
-                             {/* White Main Box */}
-                             <div className="relative bg-white border-2 border-stone-800 px-6 py-2 transform skew-x-[-10deg] shadow-lg">
-                                <span className="block transform skew-x-[10deg] text-xl md:text-2xl font-black tracking-[0.2em] italic text-stone-900 text-center min-w-[160px]">
+                        {/* Subtitle Badge - Minibus Sign Style */}
+                        <div className="relative z-10 mt-1 transform -rotate-2 hover:rotate-0 transition-transform">
+                             <div className="bg-white px-4 py-2 md:px-8 md:py-3 border-4 border-[var(--hk-royal-blue)] shadow-[0_0_20px_rgba(255,255,255,0.3)] rounded-sm">
+                                <span className="block font-hk-sans font-black tracking-[0.1em] text-[var(--hk-taxi-red)] text-center text-xl landscape:text-2xl md:text-4xl whitespace-nowrap">
                                     街頭生存指南
+                                </span>
+                                <span className="block text-[var(--hk-royal-blue)] text-center text-[10px] md:text-xs font-bold tracking-widest uppercase mt-0.5">
+                                    STREET SURVIVAL GUIDE
                                 </span>
                              </div>
                         </div>
@@ -918,54 +922,58 @@ const App: React.FC = () => {
             </div>
 
             {/* Buttons Section */}
-            <div className="flex flex-col gap-3 w-full max-w-[280px] pointer-events-auto">
-                <button onClick={startGame} className="w-full py-4 bg-[#b91c1c] hover:bg-[#991b1b] text-white font-black text-xl md:text-2xl shadow-[4px_4px_0px_rgba(0,0,0,0.5)] border-2 border-[#7f1d1d] active:translate-y-1 active:shadow-none transition-all uppercase tracking-wider group">
-                    開始狂奔 <span className="text-sm block font-normal opacity-80 group-hover:opacity-100">START</span>
+            <div className="flex flex-col gap-4 w-full max-w-[320px] pointer-events-auto">
+                <button onClick={startGame} className="w-full py-5 bg-[var(--hk-taxi-red)] hover:bg-white hover:text-[var(--hk-taxi-red)] text-white font-black text-2xl md:text-3xl border-2 border-white shadow-[0_0_15px_var(--hk-taxi-red)] active:translate-y-1 active:shadow-none transition-all uppercase tracking-widest group rounded-lg relative overflow-hidden">
+                    <span className="relative z-10 flex flex-col leading-none gap-1">
+                        <span>開始狂奔</span>
+                        <span className="text-xs font-normal tracking-[0.3em] opacity-80 group-hover:opacity-100">START RUNNING</span>
+                    </span>
+                    <div className="absolute inset-0 bg-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 z-0"></div>
                 </button>
                 
-                <div className="grid grid-cols-2 gap-3 w-full">
-                    <button onClick={() => setStatus(GameStatus.CUSTOMIZE)} className="py-3 bg-[#1c1917] hover:bg-stone-800 text-stone-200 font-bold text-lg shadow-[3px_3px_0px_rgba(0,0,0,0.5)] border border-stone-600 active:translate-y-1 active:shadow-none transition-all flex flex-col items-center justify-center gap-1">
-                        <span className="text-2xl">👕</span> 
-                        <span className="text-sm">換衫</span>
+                <div className="grid grid-cols-2 gap-4 w-full">
+                    <button onClick={() => setStatus(GameStatus.CUSTOMIZE)} className="btn-street-sign py-4 bg-[var(--hk-royal-blue)] flex flex-col items-center justify-center gap-1 group">
+                        <span className="text-2xl group-hover:scale-110 transition-transform">👕</span> 
+                        <span className="text-sm">換衫 OUTFIT</span>
                     </button>
-                    <button onClick={() => setStatus(GameStatus.SHOP)} className="py-3 bg-[#1c1917] hover:bg-stone-800 text-stone-200 font-bold text-lg shadow-[3px_3px_0px_rgba(0,0,0,0.5)] border border-stone-600 active:translate-y-1 active:shadow-none transition-all flex flex-col items-center justify-center gap-1">
-                        <span className="text-2xl">🛒</span> 
-                        <span className="text-sm">商店</span>
+                    <button onClick={() => setStatus(GameStatus.SHOP)} className="btn-street-sign py-4 bg-[var(--hk-royal-blue)] flex flex-col items-center justify-center gap-1 group">
+                        <span className="text-2xl group-hover:scale-110 transition-transform">🛒</span> 
+                        <span className="text-sm">士多 SHOP</span>
                     </button>
                     {user ? (
-                        <div className="col-span-2 flex flex-col gap-2">
-                             <div className="bg-stone-800/80 p-2 border border-stone-600 flex items-center justify-between">
-                                <div className="flex items-center gap-2 truncate">
-                                    {user.photoURL && <img src={user.photoURL} className="w-6 h-6 rounded-full border border-white" alt="avatar" />}
-                                    <span className="text-white text-xs font-bold truncate">{user.displayName}</span>
+                        <div className="col-span-2 flex flex-col gap-3">
+                             <div className="card-glass p-3 flex items-center justify-between rounded-lg border border-white/10">
+                                <div className="flex items-center gap-3 truncate">
+                                    {user.photoURL ? <img src={user.photoURL} className="w-8 h-8 rounded-full border border-white/50" alt="avatar" /> : <div className="w-8 h-8 rounded-full bg-stone-700 flex items-center justify-center text-xs">U</div>}
+                                    <span className="text-white text-sm font-bold truncate font-hk-sans">{user.displayName}</span>
                                 </div>
-                                <button onClick={() => { logout(); setIsGuest(false); }} className="text-[10px] text-stone-400 hover:text-white underline">LOGOUT</button>
+                                <button onClick={() => { logout(); setIsGuest(false); }} className="text-[10px] text-stone-400 hover:text-[var(--hk-neon-pink)] tracking-wider">LOGOUT</button>
                              </div>
-                             <button onClick={() => setStatus(GameStatus.MANUAL)} className="py-3 bg-stone-200 hover:bg-white text-stone-900 border-2 border-stone-900 font-bold text-lg shadow-[3px_3px_0px_rgba(0,0,0,0.3)] active:translate-y-1 active:shadow-none transition-all">
-                                📖 遊戲說明書
+                             <button onClick={() => setStatus(GameStatus.MANUAL)} className="py-3 bg-transparent hover:bg-white/10 text-stone-300 border border-stone-600 font-bold text-sm tracking-widest active:translate-y-1 transition-all rounded">
+                                📖 遊戲說明書 MANUAL
                              </button>
-                             <button onClick={() => { setStatus(GameStatus.LEADERBOARD); fetchLeaderboard(); }} className="py-3 bg-yellow-400 hover:bg-yellow-300 text-stone-900 border-2 border-stone-900 font-bold text-lg shadow-[3px_3px_0px_rgba(0,0,0,0.3)] active:translate-y-1 active:shadow-none transition-all">
-                                🏆 全球排行榜
+                             <button onClick={() => { setStatus(GameStatus.LEADERBOARD); fetchLeaderboard(); }} className="py-3 bg-gradient-to-r from-yellow-600 to-yellow-500 hover:brightness-110 text-white border border-yellow-300 font-bold text-lg shadow-[0_4px_10px_rgba(234,179,8,0.3)] active:translate-y-1 active:shadow-none transition-all rounded">
+                                🏆 全球排行榜 LEADERBOARD
                              </button>
                         </div>
                     ) : (
                         <>
-                             <button onClick={loginWithGoogle} className="col-span-2 py-3 bg-white hover:bg-stone-100 text-stone-900 border-2 border-stone-900 font-bold text-lg shadow-[3px_3px_0px_rgba(0,0,0,0.3)] active:translate-y-1 active:shadow-none transition-all flex items-center justify-center gap-2">
+                             <button onClick={loginWithGoogle} className="col-span-2 py-3 bg-white hover:bg-gray-100 text-stone-900 font-bold text-lg rounded-lg shadow-lg active:translate-y-1 transition-all flex items-center justify-center gap-3">
                                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                                     <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/><path d="M1 1h22v22H1z" fill="none"/>
                                 </svg>
                                 GOOGLE LOGIN
                              </button>
 
-                             <button onClick={() => setShowEmailLogin(true)} className="col-span-2 py-3 bg-stone-800 hover:bg-stone-700 text-white border-2 border-stone-600 font-bold text-lg shadow-[3px_3px_0px_rgba(0,0,0,0.3)] active:translate-y-1 active:shadow-none transition-all flex items-center justify-center gap-2">
+                             <button onClick={() => setShowEmailLogin(true)} className="col-span-2 py-3 bg-stone-800 hover:bg-stone-700 text-white font-bold text-lg rounded-lg shadow-lg active:translate-y-1 transition-all flex items-center justify-center gap-3 border border-stone-600">
                                 ✉️ EMAIL LOGIN
                              </button>
 
-                             <button onClick={() => setStatus(GameStatus.MANUAL)} className="col-span-2 py-3 bg-stone-200 hover:bg-white text-stone-900 border-2 border-stone-900 font-bold text-lg shadow-[3px_3px_0px_rgba(0,0,0,0.3)] active:translate-y-1 active:shadow-none transition-all">
-                                📖 遊戲說明書
+                             <button onClick={() => setStatus(GameStatus.MANUAL)} className="col-span-2 py-3 bg-transparent hover:bg-white/10 text-stone-300 border border-stone-600 font-bold text-sm tracking-widest active:translate-y-1 transition-all rounded">
+                                📖 遊戲說明書 MANUAL
                              </button>
-                             <button onClick={() => { setStatus(GameStatus.LEADERBOARD); fetchLeaderboard(); }} className="col-span-2 py-3 bg-yellow-400 hover:bg-yellow-300 text-stone-900 border-2 border-stone-900 font-bold text-lg shadow-[3px_3px_0px_rgba(0,0,0,0.3)] active:translate-y-1 active:shadow-none transition-all">
-                                🏆 全球排行榜
+                             <button onClick={() => { setStatus(GameStatus.LEADERBOARD); fetchLeaderboard(); }} className="col-span-2 py-3 bg-white/5 hover:bg-white/10 text-yellow-500 border border-yellow-500/50 font-bold text-lg active:translate-y-1 transition-all rounded">
+                                🏆 全球排行榜 LEADERBOARD
                              </button>
                         </>
                     )}
@@ -990,14 +998,28 @@ const App: React.FC = () => {
       )}
 
       {status === GameStatus.LEADERBOARD && (
-        <div className="absolute inset-0 z-30 bg-[#e0d5c0] flex flex-col items-center p-4 md:p-8 overflow-y-auto">
-            <div className="w-full max-w-3xl mt-4 md:mt-8 pb-24">
-                <div className="flex justify-between items-center mb-6 border-b-4 border-stone-900 pb-4">
-                    <h2 className="text-4xl md:text-5xl font-black italic tracking-tighter">排行榜 LEADERBOARD</h2>
+        <div className="absolute inset-0 z-30 bg-mosaic flex flex-col items-center p-4 md:p-8 overflow-y-auto touch-pan-y">
+            {/* Dark Overlay for readability over mosaic */}
+            <div className="absolute inset-0 bg-black/60 pointer-events-none z-0"></div>
+
+            <div className="w-full max-w-3xl mt-4 md:mt-8 pb-24 relative z-10">
+                <div className="flex flex-col items-center mb-8">
+                    <h2 className="text-5xl md:text-7xl font-hk-serif font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white via-[var(--hk-neon-pink)] to-white drop-shadow-[0_0_15px_rgba(255,0,144,0.6)] animate-pulse-slow text-center px-4 py-2">
+                        全球排行榜
+                    </h2>
+                    <span className="text-xl font-bold tracking-[0.5em] text-[var(--hk-royal-blue)] bg-white px-2 mt-2 uppercase">LEADERBOARD</span>
                 </div>
                 
-                <div className="bg-white p-6 border-4 border-stone-900 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)] mb-20">
-                    <h3 className="text-2xl font-black mb-4 border-b-2 border-stone-200 pb-2 text-yellow-600">🏆 全球 TOP 10</h3>
+                <div className="card-glass p-4 md:p-6 mb-20 border border-white/10 rounded-xl relative overflow-hidden">
+                    {/* Neon Side Accents */}
+                    <div className="absolute left-0 top-10 bottom-10 w-[2px] bg-gradient-to-b from-transparent via-[var(--hk-neon-pink)] to-transparent opacity-50"></div>
+                    <div className="absolute right-0 top-10 bottom-10 w-[2px] bg-gradient-to-b from-transparent via-[var(--hk-royal-blue)] to-transparent opacity-50"></div>
+
+                    <h3 className="text-2xl font-black mb-6 border-b border-white/20 pb-4 text-white flex items-center gap-3">
+                        <span className="text-3xl">🏆</span> 
+                        <span className="bg-gradient-to-r from-yellow-300 to-yellow-600 bg-clip-text text-transparent">TOP 10 RUNNERS</span>
+                    </h3>
+                    
                     <div className="space-y-3">
                         {leaderboard.length > 0 ? (
                             leaderboard.map((entry, idx) => {
@@ -1006,65 +1028,75 @@ const App: React.FC = () => {
                                 const isTop3 = idx === 2;
                                 
                                 return (
-                                <div key={idx} className={`flex justify-between items-center p-3 border-2 rounded ${
-                                    isTop1 ? 'bg-yellow-100 border-yellow-500 shadow-[4px_4px_0px_0px_rgba(234,179,8,0.3)] scale-[1.02]' :
-                                    isTop2 ? 'bg-slate-100 border-slate-400 shadow-[2px_2px_0px_0px_rgba(148,163,184,0.3)]' :
-                                    isTop3 ? 'bg-orange-50 border-orange-300 shadow-[2px_2px_0px_0px_rgba(253,186,116,0.3)]' :
-                                    'bg-stone-50 border-stone-200'
+                                <div key={idx} className={`flex justify-between items-center p-3 md:p-4 rounded-lg border transition-all hover:scale-[1.01] ${
+                                    isTop1 ? 'bg-gradient-to-r from-yellow-900/80 to-yellow-600/20 border-yellow-500/50 shadow-[0_0_15px_rgba(234,179,8,0.2)]' :
+                                    isTop2 ? 'bg-gradient-to-r from-slate-800/80 to-slate-600/20 border-slate-400/50 shadow-[0_0_10px_rgba(148,163,184,0.2)]' :
+                                    isTop3 ? 'bg-gradient-to-r from-orange-900/80 to-orange-700/20 border-orange-500/50 shadow-[0_0_10px_rgba(249,115,22,0.2)]' :
+                                    'bg-white/5 border-white/10 hover:bg-white/10'
                                 }`}>
                                     <div className="flex items-center gap-4">
-                                        <div className="flex items-center justify-center w-8 h-8">
-                                            {isTop1 ? <span className="text-3xl">🥇</span> :
-                                             isTop2 ? <span className="text-3xl">🥈</span> :
-                                             isTop3 ? <span className="text-3xl">🥉</span> :
-                                             <span className="font-black text-stone-400 text-lg">#{idx + 1}</span>
+                                        <div className="flex items-center justify-center w-10 h-10 shrink-0 font-black italic text-xl">
+                                            {isTop1 ? <span className="text-4xl drop-shadow-md">🥇</span> :
+                                             isTop2 ? <span className="text-4xl drop-shadow-md">🥈</span> :
+                                             isTop3 ? <span className="text-4xl drop-shadow-md">🥉</span> :
+                                             <span className="text-stone-500">#{idx + 1}</span>
                                             }
                                         </div>
                                         
-                                        <div className="flex items-center gap-2">
-                                            {entry.photoURL && (
-                                                <img src={entry.photoURL} alt={entry.name} className={`w-10 h-10 rounded-full border-2 ${isTop1 ? 'border-yellow-500' : 'border-stone-300'}`} />
+                                        <div className="flex items-center gap-3">
+                                            {entry.photoURL ? (
+                                                <img src={entry.photoURL} alt={entry.name} className={`w-10 h-10 rounded-full border-2 ${isTop1 ? 'border-yellow-400' : 'border-stone-600'}`} />
+                                            ) : (
+                                                <div className={`w-10 h-10 rounded-full border-2 flex items-center justify-center text-xs font-bold ${isTop1 ? 'border-yellow-400 bg-yellow-900 text-yellow-100' : 'border-stone-600 bg-stone-800 text-stone-400'}`}>
+                                                    {entry.name.substring(0, 1)}
+                                                </div>
                                             )}
                                             <div className="flex flex-col">
-                                                <span className={`font-bold text-lg ${isTop1 ? 'text-yellow-700' : 'text-stone-900'}`}>{entry.name}</span>
+                                                <span className={`font-bold text-lg md:text-xl font-hk-sans truncate max-w-[120px] md:max-w-[200px] ${isTop1 ? 'text-yellow-300' : 'text-stone-200'}`}>{entry.name}</span>
                                                 <span className="text-[10px] text-stone-500 font-mono uppercase">{entry.date}</span>
                                             </div>
                                         </div>
                                     </div>
                                     <div className="flex items-baseline gap-1">
-                                        <span className={`text-2xl font-black ${isTop1 ? 'text-yellow-600' : 'text-stone-900'}`}>{entry.score}</span>
+                                        <span className={`text-2xl md:text-3xl font-black font-hk-serif tracking-tighter ${isTop1 ? 'text-yellow-400 drop-shadow-[0_0_5px_rgba(250,204,21,0.5)]' : 'text-white'}`}>{entry.score}</span>
                                         <span className="text-xs font-bold text-stone-500">m</span>
                                     </div>
                                 </div>
                                 );
                             })
                         ) : (
-                            <div className="text-center py-10 text-stone-400 font-bold italic">抓取排行榜資料中...</div>
+                            <div className="text-center py-20 text-stone-500 font-bold italic flex flex-col items-center gap-2">
+                                <div className="w-8 h-8 border-4 border-stone-600 border-t-yellow-500 rounded-full animate-spin"></div>
+                                <span>LOADING DATA...</span>
+                            </div>
                         )}
                     </div>
                 </div>
 
                 {/* My Rank Footer */}
                 {user && (
-                    <div className="fixed bottom-0 left-0 w-full p-4 pointer-events-none z-50 flex justify-center">
-                         <div className="w-full max-w-3xl bg-stone-900 text-white p-4 border-t-4 border-yellow-500 shadow-[0_-4px_10px_rgba(0,0,0,0.3)] pointer-events-auto flex justify-between items-center rounded-t-xl">
+                    <div className="fixed bottom-0 left-0 w-full pointer-events-none z-50 flex justify-center">
+                         <div className="w-full max-w-3xl bg-stone-900/95 backdrop-blur-md text-white p-4 border-t-4 border-[var(--hk-neon-pink)] shadow-[0_-4px_20px_rgba(0,0,0,0.5)] pointer-events-auto flex justify-between items-center">
                             <div className="flex items-center gap-4">
-                                <div className="bg-yellow-500 text-stone-900 font-black px-3 py-1 rounded">MY RANK</div>
-                                <div className="flex items-center gap-2">
-                                     {user.photoURL && <img src={user.photoURL} className="w-8 h-8 rounded-full border border-white" />}
+                                <div className="bg-[var(--hk-neon-pink)] text-white font-black px-3 py-1 rounded text-sm italic transform -skew-x-12">MY RANK</div>
+                                <div className="flex items-center gap-3">
+                                     {user.photoURL && <img src={user.photoURL} className="w-10 h-10 rounded-full border-2 border-white/20" />}
                                      <div className="flex flex-col">
-                                        <span className="font-bold text-sm text-stone-300">YOUR BEST</span>
-                                        <span className="font-black text-xl leading-none">{highScore > 0 ? highScore : "---"}</span>
+                                        <span className="font-bold text-xs text-stone-400 tracking-widest">PERSONAL BEST</span>
+                                        <span className="font-black text-2xl leading-none font-hk-serif text-white">{highScore > 0 ? highScore : "---"}</span>
                                      </div>
                                 </div>
                             </div>
                             <div className="text-right">
                                 {leaderboard.find(e => e.name === playerName) ? (
-                                    <div className="text-yellow-400 font-black text-2xl">
-                                        #{leaderboard.findIndex(e => e.name === playerName) + 1}
+                                    <div className="flex flex-col items-end">
+                                        <span className="text-[10px] text-stone-500 font-bold">CURRENT RANK</span>
+                                        <div className="text-yellow-400 font-black text-3xl italic font-hk-serif drop-shadow-[0_0_10px_rgba(250,204,21,0.5)]">
+                                            #{leaderboard.findIndex(e => e.name === playerName) + 1}
+                                        </div>
                                     </div>
                                 ) : (
-                                    <div className="text-stone-500 font-bold text-sm">NOT IN TOP 10</div>
+                                    <div className="text-stone-600 font-bold text-sm bg-black/30 px-3 py-1 rounded">NOT IN TOP 10</div>
                                 )}
                             </div>
                          </div>
@@ -1073,7 +1105,7 @@ const App: React.FC = () => {
             </div>
             
             <div className="fixed top-4 right-4 z-50">
-                <button onClick={() => setStatus(GameStatus.MENU)} className="w-12 h-12 bg-stone-900 text-white font-bold rounded-full shadow-lg flex items-center justify-center hover:bg-stone-800 active:scale-95 transition-all">
+                <button onClick={() => setStatus(GameStatus.MENU)} className="w-12 h-12 bg-[var(--hk-taxi-red)] text-white font-bold rounded-lg shadow-[0_0_10px_rgba(220,38,38,0.5)] flex items-center justify-center hover:bg-red-700 active:scale-95 transition-all border-2 border-white">
                     ✕
                 </button>
             </div>
@@ -1084,12 +1116,12 @@ const App: React.FC = () => {
         <div className="absolute inset-0 z-30 bg-[#e0d5c0] flex flex-col items-center p-4 md:p-8 overflow-y-auto touch-pan-y">
             <div className="w-full max-w-3xl mt-4 md:mt-8 pb-24">
                 <div className="flex justify-between items-center mb-6 border-b-4 border-stone-900 pb-4">
-                    <h2 className="text-4xl md:text-5xl font-black italic tracking-tighter">說明書 MANUAL</h2>
+                    <h2 className="text-4xl md:text-5xl font-black italic tracking-tighter text-[var(--hk-taxi-red)] drop-shadow-sm stroke-white">說明書 MANUAL</h2>
                 </div>
                 
                 <div className="space-y-6">
                     <div className="bg-white p-6 border-4 border-stone-900 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)]">
-                         <h3 className="text-2xl font-black mb-4 border-b-2 border-stone-200 pb-2">🎮 操作控制 CONTROLS</h3>
+                         <h3 className="text-2xl font-black mb-4 border-b-2 border-stone-200 pb-2 text-stone-900">🎮 操作控制 CONTROLS</h3>
                          <ul className="space-y-3 font-bold text-stone-700">
                              <li className="flex items-center gap-3"><span className="bg-stone-900 text-white px-2 py-0.5 rounded text-sm min-w-[140px] text-center">⬅️ ➡️ / SWIPE</span> 左右切換跑道 Change Lane</li>
                              <li className="flex items-center gap-3"><span className="bg-stone-900 text-white px-2 py-0.5 rounded text-sm min-w-[140px] text-center">⬆️ / SWIPE UP</span> 跳躍 Jump (可避開矮障礙物)</li>
@@ -1099,13 +1131,13 @@ const App: React.FC = () => {
                     </div>
 
                     <div className="bg-white p-6 border-4 border-stone-900 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)]">
-                         <h3 className="text-2xl font-black mb-4 border-b-2 border-stone-200 pb-2">🗺️ 地區 REGIONS</h3>
+                         <h3 className="text-2xl font-black mb-4 border-b-2 border-stone-200 pb-2 text-stone-900">🗺️ 地區 REGIONS</h3>
                          <p className="font-bold text-stone-600 mb-4 italic">生存不易,識路好緊要</p>
                          <div className="grid grid-cols-1 gap-3">
                             {Object.values(REGIONS_DATA).map((r) => (
                                 <div key={r.id} className="bg-stone-50 border-2 border-stone-200 p-3 flex flex-col md:flex-row md:items-center justify-between gap-2">
                                     <div>
-                                        <div className="font-black text-lg">{r.name}</div>
+                                        <div className="font-black text-lg text-stone-900">{r.name}</div>
                                         <div className="text-sm font-bold text-stone-500">{r.description}</div>
                                     </div>
                                     <div className="flex gap-1 shrink-0">
@@ -1120,23 +1152,23 @@ const App: React.FC = () => {
                     </div>
                     
                     <div className="bg-white p-6 border-4 border-stone-900 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)]">
-                         <h3 className="text-2xl font-black mb-4 border-b-2 border-stone-200 pb-2">⚡ 道具 POWER-UPS</h3>
+                         <h3 className="text-2xl font-black mb-4 border-b-2 border-stone-200 pb-2 text-stone-900">⚡ 道具 POWER-UPS</h3>
                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                              <div className="flex flex-col items-center text-center p-3 bg-yellow-50 border-2 border-yellow-200">
                                  <div className="mb-2"><PineappleBunIcon className="w-16 h-16 drop-shadow-md" /></div>
-                                 <div className="font-black text-lg">菠蘿包</div>
+                                 <div className="font-black text-lg text-stone-900">菠蘿包</div>
                                  <div className="text-xs font-bold text-stone-500 uppercase">Currency</div>
                                  <p className="text-xs mt-1 text-stone-600">收集用來購買升級與服裝</p>
                              </div>
                              <div className="flex flex-col items-center text-center p-3 bg-yellow-100 border-2 border-yellow-400">
                                  <div className="mb-2"><LemonTeaIcon className="w-16 h-16 drop-shadow-md" /></div>
-                                 <div className="font-black text-lg">檸檬茶</div>
+                                 <div className="font-black text-lg text-stone-900">檸檬茶</div>
                                  <div className="text-xs font-bold text-stone-500 uppercase">Super Speed</div>
                                  <p className="text-xs mt-1 text-stone-600">喝下即刻無敵加速衝刺！</p>
                              </div>
                              <div className="flex flex-col items-center text-center p-3 bg-blue-50 border-2 border-blue-300">
                                  <div className="mb-2"><MagnetIcon className="w-16 h-16 drop-shadow-md" /></div>
-                                 <div className="font-black text-lg">磁石</div>
+                                 <div className="font-black text-lg text-stone-900">磁石</div>
                                  <div className="text-xs font-bold text-stone-500 uppercase">Magnet</div>
                                  <p className="text-xs mt-1 text-stone-600">自動吸取附近的菠蘿包</p>
                              </div>
@@ -1144,7 +1176,7 @@ const App: React.FC = () => {
                     </div>
                     
                     <div className="bg-white p-6 border-4 border-stone-900 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)]">
-                         <h3 className="text-2xl font-black mb-4 border-b-2 border-stone-200 pb-2 flex items-center gap-2">🕹️ 隱藏要素 SECRETS</h3>
+                         <h3 className="text-2xl font-black mb-4 border-b-2 border-stone-200 pb-2 flex items-center gap-2 text-stone-900">🕹️ 隱藏要素 SECRETS</h3>
                          <div className="flex items-start gap-4">
                             <div className="text-4xl">👽</div>
                             <div>
@@ -1168,13 +1200,13 @@ const App: React.FC = () => {
         <div className="absolute inset-0 z-30 bg-[#e0d5c0] flex flex-col items-center p-6 overflow-y-auto touch-pan-y">
             <div className="w-full max-w-3xl mt-10">
                 <div className="flex justify-between items-center mb-8 border-b-4 border-stone-900 pb-4">
-                    <h2 className="text-5xl font-black italic tracking-tighter">士多 STORE</h2>
-                    <div className="text-2xl font-bold flex items-center gap-2 bg-white px-4 py-2 border-2 border-stone-900 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)]">
+                    <h2 className="text-5xl font-black italic tracking-tighter text-[var(--hk-taxi-red)] drop-shadow-sm stroke-white">士多 STORE</h2>
+                    <div className="text-2xl font-bold flex items-center gap-2 bg-white px-4 py-2 border-2 border-stone-900 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] text-stone-900">
                         <PineappleBunIcon className="w-8 h-8" /> <span>{totalBuns}</span>
                     </div>
                 </div>
                 
-                <h3 className="text-2xl font-black mb-4">能力升級 UPGRADES</h3>
+                <h3 className="text-2xl font-black mb-4 text-stone-900">能力升級 UPGRADES</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                     <ShopItem 
                         name="鐵布衫 Iron Body" desc="生命值 +1 (Start with 3 Lives)" cost={100} 
@@ -1198,7 +1230,7 @@ const App: React.FC = () => {
                     />
                 </div>
 
-                <h3 className="text-2xl font-black mb-4">限定服裝 SPECIAL OUTFITS</h3>
+                <h3 className="text-2xl font-black mb-4 text-stone-900">限定服裝 SPECIAL OUTFITS</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                      <ShopItem name="功夫熊貓 Panda Master" desc="招財進寶：麵包收益增加 (Buns +1)" cost={800} owned={upgrades.skinPanda} onBuy={() => buyUpgrade('skinPanda', 800)} special />
                      <ShopItem name="鐵甲英雄 Iron Hero" desc="高科技：道具時間 +3秒" cost={1200} owned={upgrades.skinIron} onBuy={() => buyUpgrade('skinIron', 1200)} special />
@@ -1214,36 +1246,38 @@ const App: React.FC = () => {
       {status === GameStatus.CUSTOMIZE && (
           <div className="absolute inset-0 z-30 flex flex-col items-center overflow-hidden pointer-events-none">
             <div className="w-full max-w-5xl flex flex-col h-full pointer-events-auto">
-                <div className="flex shrink-0 justify-between items-center p-4 md:p-0 md:mt-6 md:mb-4 md:border-b-4 md:pb-2 border-stone-900 bg-[#e0d5c0] z-10">
-                    <h2 className="text-4xl md:text-5xl font-black italic tracking-tighter">更衣室 WARDROBE</h2>
+                <div className="flex shrink-0 justify-between items-center p-4 md:p-0 md:mt-6 md:mb-4 md:border-b-4 md:pb-2 border-stone-900 bg-[#e0d5c0] z-10 shadow-md">
+                    <h2 className="text-4xl md:text-5xl font-black italic tracking-tighter text-[var(--hk-taxi-red)] drop-shadow-sm stroke-white">更衣室 WARDROBE</h2>
                 </div>
 
-                <div className="flex flex-col md:flex-row gap-0 md:gap-6 flex-1 min-h-0 overflow-hidden md:p-6 md:pt-0">
-                    <div className="w-full h-[45vh] md:h-auto md:w-1/2 bg-transparent border-y-4 md:border-4 border-stone-900 shadow-none md:shadow-[8px_8px_0px_0px_rgba(0,0,0,0.2)] relative shrink-0">
+                <div className="flex flex-col landscape:flex-row md:flex-row gap-0 md:gap-6 flex-1 min-h-0 overflow-hidden md:p-6 md:pt-0">
+                    {/* 3D Preview Area - Must be transparent to show Canvas behind */}
+                    <div className="w-full h-[35vh] landscape:h-auto landscape:w-1/2 md:w-1/2 bg-transparent relative shrink-0 overflow-hidden pointer-events-none">
                     </div>
 
-                    <div className="w-full md:w-1/2 flex flex-col gap-4 overflow-y-auto touch-pan-y p-4 md:p-0 bg-[#e0d5c0]">
-                        <div className="bg-white p-4 md:p-6 border-4 border-stone-900 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,0.2)]">
+                    {/* UI Controls Area - Needs background */}
+                    <div className="w-full landscape:w-1/2 md:w-1/2 flex flex-col gap-4 overflow-y-auto touch-pan-y p-4 md:p-0 bg-[#e0d5c0]">
+                        <div className="bg-white p-4 md:p-6 border-4 border-stone-900 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,0.2)] text-stone-900">
                              <div className="space-y-6">
                                 <div>
-                                    <h4 className="font-bold text-lg mb-2">套裝 OUTFIT</h4>
+                                    <h4 className="font-bold text-lg mb-2 text-stone-900 border-b-2 border-stone-200 pb-1">套裝 OUTFIT</h4>
                                     <div className="grid grid-cols-2 gap-2">
-                                        <button onClick={() => changeStyle('outfit', 'casual')} className={`py-2 font-bold border-2 ${charStyle.outfit === 'casual' ? 'bg-stone-900 text-white border-stone-900' : 'bg-white text-stone-900 border-stone-300'}`}>街坊裝</button>
-                                        <button onClick={() => changeStyle('outfit', 'panda')} disabled={!upgrades.skinPanda} className={`py-2 font-bold border-2 relative ${charStyle.outfit === 'panda' ? 'bg-stone-900 text-white border-stone-900' : upgrades.skinPanda ? 'bg-white text-stone-900 border-stone-300' : 'bg-stone-100 text-stone-400 border-stone-200'}`}>
-                                            熊貓 {!upgrades.skinPanda && <span className="absolute -top-2 -right-2 text-[10px] bg-red-600 text-white px-1 rounded">LOCKED</span>}
+                                        <button onClick={() => changeStyle('outfit', 'casual')} className={`py-2 font-bold border-2 transition-all active:scale-95 ${charStyle.outfit === 'casual' ? 'bg-stone-900 text-white border-stone-900 shadow-md' : 'bg-white text-stone-900 border-stone-300 hover:bg-stone-50'}`}>街坊裝</button>
+                                        <button onClick={() => changeStyle('outfit', 'panda')} disabled={!upgrades.skinPanda} className={`py-2 font-bold border-2 relative transition-all active:scale-95 ${charStyle.outfit === 'panda' ? 'bg-stone-900 text-white border-stone-900 shadow-md' : upgrades.skinPanda ? 'bg-white text-stone-900 border-stone-300 hover:bg-stone-50' : 'bg-stone-100 text-stone-400 border-stone-200 cursor-not-allowed'}`}>
+                                            熊貓 {!upgrades.skinPanda && <span className="absolute -top-2 -right-2 text-[10px] bg-red-600 text-white px-1.5 py-0.5 rounded shadow-sm border border-red-800 transform rotate-12">LOCKED</span>}
                                         </button>
-                                        <button onClick={() => changeStyle('outfit', 'iron')} disabled={!upgrades.skinIron} className={`py-2 font-bold border-2 relative ${charStyle.outfit === 'iron' ? 'bg-stone-900 text-white border-stone-900' : upgrades.skinIron ? 'bg-white text-stone-900 border-stone-300' : 'bg-stone-100 text-stone-400 border-stone-200'}`}>
-                                            鐵甲 {!upgrades.skinIron && <span className="absolute -top-2 -right-2 text-[10px] bg-red-600 text-white px-1 rounded">LOCKED</span>}
+                                        <button onClick={() => changeStyle('outfit', 'iron')} disabled={!upgrades.skinIron} className={`py-2 font-bold border-2 relative transition-all active:scale-95 ${charStyle.outfit === 'iron' ? 'bg-stone-900 text-white border-stone-900 shadow-md' : upgrades.skinIron ? 'bg-white text-stone-900 border-stone-300 hover:bg-stone-50' : 'bg-stone-100 text-stone-400 border-stone-200 cursor-not-allowed'}`}>
+                                            鐵甲 {!upgrades.skinIron && <span className="absolute -top-2 -right-2 text-[10px] bg-red-600 text-white px-1.5 py-0.5 rounded shadow-sm border border-red-800 transform rotate-12">LOCKED</span>}
                                         </button>
-                                        <button onClick={() => changeStyle('outfit', 'destruction')} disabled={!upgrades.skinDestruction} className={`py-2 font-bold border-2 relative ${charStyle.outfit === 'destruction' ? 'bg-stone-900 text-white border-stone-900' : upgrades.skinDestruction ? 'bg-white text-stone-900 border-stone-300' : 'bg-stone-100 text-stone-400 border-stone-200'}`}>
-                                            破壞之王 {!upgrades.skinDestruction && <span className="absolute -top-2 -right-2 text-[10px] bg-red-600 text-white px-1 rounded">SECRET</span>}
+                                        <button onClick={() => changeStyle('outfit', 'destruction')} disabled={!upgrades.skinDestruction} className={`py-2 font-bold border-2 relative transition-all active:scale-95 ${charStyle.outfit === 'destruction' ? 'bg-stone-900 text-white border-stone-900 shadow-md' : upgrades.skinDestruction ? 'bg-white text-stone-900 border-stone-300 hover:bg-stone-50' : 'bg-stone-100 text-stone-400 border-stone-200 cursor-not-allowed'}`}>
+                                            破壞王 {!upgrades.skinDestruction && <span className="absolute -top-2 -right-2 text-[10px] bg-red-600 text-white px-1.5 py-0.5 rounded shadow-sm border border-red-800 transform rotate-12">SECRET</span>}
                                         </button>
                                     </div>
-                                    <p className="text-xs text-stone-500 mt-2 h-8">
-                                        {charStyle.outfit === 'panda' ? "效果：獲得更多麵包獎勵 (+1)" : 
-                                         charStyle.outfit === 'iron' ? "效果：道具時間+3秒 & 噴射飛行模式" : 
-                                         charStyle.outfit === 'destruction' ? "效果：生命值+1 & 怪獸剋星！破壞障礙物換取麵包 (1x2)" : "標準外觀，可自由配色"}
-                                    </p>
+                                    <div className="bg-stone-100 border border-stone-200 p-2 mt-2 rounded text-xs text-stone-600 min-h-[40px] flex items-center">
+                                        {charStyle.outfit === 'panda' ? "🐼 效果：獲得更多麵包獎勵 (+1 per bun)" : 
+                                         charStyle.outfit === 'iron' ? "🤖 效果：道具持續時間+3秒 & 啟用噴射飛行" : 
+                                         charStyle.outfit === 'destruction' ? "🦖 效果：生命值+1 & 破壞障礙物獲得麵包 (1x2)" : "👕 標準外觀，可自由搭配顏色"}
+                                    </div>
                                 </div>
                                 {charStyle.outfit === 'casual' && (
                                     <>
@@ -1254,7 +1288,9 @@ const App: React.FC = () => {
                                 )}
                              </div>
                         </div>
-                        <button onClick={() => setStatus(GameStatus.MENU)} className="w-full py-4 md:py-4 bg-stone-900 text-white font-bold text-xl md:text-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] md:shadow-[6px_6px_0px_0px_rgba(0,0,0,0.2)] hover:opacity-90 active:translate-y-1 active:shadow-none transition-all mt-auto md:mt-auto shrink-0 mb-4 md:mb-0">返回主頁 BACK</button>
+                        <button onClick={() => setStatus(GameStatus.MENU)} className="w-full py-4 md:py-4 bg-stone-900 text-white font-bold text-xl md:text-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] md:shadow-[6px_6px_0px_0px_rgba(0,0,0,0.2)] hover:opacity-90 active:translate-y-1 active:shadow-none transition-all mt-auto md:mt-auto shrink-0 mb-4 md:mb-0 border-2 border-stone-900">
+                            返回主頁 BACK
+                        </button>
                     </div>
                 </div>
             </div>
@@ -1274,48 +1310,48 @@ const App: React.FC = () => {
 
             {/* Center: Score & Progress */}
             <div className="absolute left-1/2 -translate-x-1/2 top-4 flex flex-col items-center w-full max-w-[260px] z-20 pointer-events-none">
-                 <div className="text-6xl font-black italic text-stone-900 drop-shadow-sm leading-none flex items-baseline" style={{ WebkitTextStroke: '1px #ffffff', paintOrder: 'stroke fill' }}>
+                 <div className="text-6xl font-black italic text-transparent bg-clip-text bg-gradient-to-b from-white to-stone-400 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] leading-none flex items-baseline font-hk-serif">
                     <span ref={scoreDisplayRef}>0</span>
-                    <span className="text-xl not-italic ml-0.5 text-stone-700 font-bold">m</span>
+                    <span className="text-xl not-italic ml-0.5 text-[var(--hk-neon-pink)] font-bold font-hk-sans">m</span>
                  </div>
 
-                 <div className="w-full relative mt-1 flex flex-col gap-1">
+                 <div className="w-full relative mt-2 flex flex-col gap-1">
                      <div className="flex justify-between items-end px-1 gap-2">
-                         <span className="text-[10px] font-bold text-stone-500 tracking-tighter shrink-0">START</span>
-                         <div className="bg-white border border-stone-900 px-1.5 py-0.5 shadow-[1px_1px_0px_0px_rgba(0,0,0,0.1)] text-[10px] font-bold leading-none truncate min-w-0">
+                         <span className="text-[10px] font-bold text-stone-400 tracking-widest shrink-0 font-mono">START</span>
+                         <div className="bg-[var(--hk-royal-blue)] text-white border border-white/20 px-2 py-0.5 shadow-[0_0_10px_rgba(0,51,153,0.5)] text-[10px] font-bold leading-none truncate min-w-0 rounded-sm">
                             {regionInfo?.name || "HONG KONG"}
                          </div>
                      </div>
-                     <div className="w-full h-3 bg-stone-200 border-2 border-stone-900 rounded-full overflow-hidden relative">
+                     <div className="w-full h-2 bg-stone-800 border border-stone-600 rounded-full overflow-hidden relative shadow-inner">
                          <div 
                              ref={progressBarRef}
-                             className="h-full bg-yellow-400 border-r-2 border-stone-900 transition-all duration-200 ease-linear relative" 
+                             className="h-full bg-gradient-to-r from-[var(--hk-neon-pink)] to-purple-500 shadow-[0_0_10px_var(--hk-neon-pink)] transition-all duration-200 ease-linear relative" 
                              style={{ width: '0%' }}
                          >
-                            <div className="absolute inset-0 w-full h-full opacity-30 bg-[image:repeating-linear-gradient(45deg,#000_0,#000_2px,transparent_2px,transparent_6px)]"></div>
+                            <div className="absolute inset-0 w-full h-full opacity-50 bg-[repeating-linear-gradient(45deg,#000_0,#000_2px,transparent_2px,transparent_6px)]"></div>
                          </div>
                      </div>
                  </div>
 
-                 <div className="flex items-center gap-3 mt-2 bg-white/90 backdrop-blur-sm border-2 border-stone-900 px-3 py-1 rounded shadow-sm">
-                      <div className="flex items-center gap-1.5">
-                         <PineappleBunIcon className="w-5 h-5 drop-shadow-sm" />
-                         <span className="text-lg font-black leading-none pt-0.5 text-stone-800">{runBuns}</span>
+                 <div className="flex items-center gap-4 mt-3 card-glass px-4 py-1.5 rounded-full border border-white/20">
+                      <div className="flex items-center gap-2">
+                         <PineappleBunIcon className="w-5 h-5 drop-shadow-[0_0_5px_gold]" />
+                         <span className="text-lg font-black leading-none pt-0.5 text-[var(--hk-colonial-cream)] font-mono">{runBuns}</span>
                       </div>
-                      <div className="w-0.5 h-4 bg-stone-300"></div>
-                      <div className="flex items-center gap-1.5">
-                         <span className="text-lg drop-shadow-sm">💥</span>
-                         <span className="text-lg font-black leading-none pt-0.5 text-stone-600">{destroyedCount}</span>
+                      <div className="w-[1px] h-4 bg-white/20"></div>
+                      <div className="flex items-center gap-2">
+                         <span className="text-lg drop-shadow-[0_0_5px_red]">💥</span>
+                         <span className="text-lg font-black leading-none pt-0.5 text-stone-300 font-mono">{destroyedCount}</span>
                       </div>
                  </div>
             </div>
 
             {/* Right: Lives */}
-            <div className="flex gap-0.5 z-30">
+            <div className="flex gap-1 z-30 pt-2 pr-2">
                 {[...Array(2 + (effectiveUpgrades.extraLife ? 1 : 0) + (charStyle.outfit === 'destruction' ? 1 : 0))].map((_, i) => (
                     <HeartIcon 
                         key={i} 
-                        className={`w-8 h-8 transition-all duration-300 transform ${i < lives ? 'scale-100 drop-shadow-sm' : 'scale-75 opacity-40 grayscale'}`} 
+                        className={`w-7 h-7 transition-all duration-300 transform ${i < lives ? 'scale-100 drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]' : 'scale-75 opacity-20 grayscale'}`} 
                         active={i < lives} 
                     />
                 ))}
@@ -1371,11 +1407,17 @@ const App: React.FC = () => {
       )}
 
       {status === GameStatus.PAUSED && (
-        <div className="absolute inset-0 z-40 flex flex-col items-center justify-center bg-stone-900/60 backdrop-blur-md p-6">
-            <h2 className="text-6xl font-black text-white italic tracking-tighter mb-8 drop-shadow-lg">暫停 PAUSED</h2>
-            <div className="flex flex-col gap-4 w-full max-w-xs pointer-events-auto">
-                <button onClick={() => setStatus(GameStatus.PLAYING)} className="w-full py-4 bg-white text-stone-900 font-bold text-xl shadow-[6px_6px_0px_0px_rgba(0,0,0,0.3)] hover:bg-gray-100 active:scale-95 transition-all">繼續遊戲 RESUME</button>
-                <button onClick={() => setStatus(GameStatus.MENU)} className="w-full py-4 bg-red-700 text-white font-bold text-xl shadow-[6px_6px_0px_0px_rgba(0,0,0,0.3)] hover:opacity-90 active:scale-95 transition-all">主畫面 MAIN MENU</button>
+        <div className="absolute inset-0 z-40 flex flex-col items-center justify-center bg-black/80 backdrop-blur-md p-6">
+            <h2 className="text-7xl font-hk-serif font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-stone-400 italic tracking-tighter mb-10 drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">
+                暫停 PAUSED
+            </h2>
+            <div className="flex flex-col gap-6 w-full max-w-sm pointer-events-auto">
+                <button onClick={() => setStatus(GameStatus.PLAYING)} className="w-full py-4 btn-street-sign bg-white text-stone-900 border-none hover:bg-stone-200">
+                    繼續遊戲 RESUME
+                </button>
+                <button onClick={() => setStatus(GameStatus.MENU)} className="w-full py-4 btn-street-sign bg-[var(--hk-taxi-red)] border-none hover:bg-red-700">
+                    主畫面 MAIN MENU
+                </button>
             </div>
         </div>
       )}
@@ -1384,13 +1426,43 @@ const App: React.FC = () => {
         <div className={`absolute inset-0 z-40 overflow-y-auto touch-auto select-auto ${status === GameStatus.VICTORY ? 'bg-yellow-500/90' : 'bg-red-900/95'} text-white`}>
             <div className="min-h-full flex flex-col items-center justify-center p-6 landscape:p-4 lg:landscape:p-6 text-center animate-fade-in">
                 {showLeaderboardInput ? (
+                    showCancelConfirmation ? (
+                        <div className="w-full max-w-md bg-stone-900 border-4 border-[var(--hk-taxi-red)] p-6 shadow-[8px_8px_0px_0px_rgba(220,38,38,0.2)] pointer-events-auto text-center animate-bounce-slight">
+                            <h3 className="text-3xl font-black text-white mb-6">確定不提交成績嗎？<br/><span className="text-lg text-stone-400 font-bold">DISCARD RECORD?</span></h3>
+                             <div className="flex flex-col gap-3">
+                                <button 
+                                    onClick={() => {
+                                        setShowLeaderboardInput(false);
+                                        setShowCancelConfirmation(false);
+                                    }}
+                                    className="w-full py-3 bg-[var(--hk-taxi-red)] text-white font-bold text-xl hover:bg-red-700 active:scale-95 transition-all shadow-[0_4px_0_0_#991b1b] active:shadow-none"
+                                >
+                                    確認 (不提交) CONFIRM
+                                </button>
+                                <button 
+                                    onClick={() => setShowCancelConfirmation(false)}
+                                    className="w-full py-3 bg-stone-700 text-white font-bold text-xl hover:bg-stone-600 active:scale-95 transition-all"
+                                >
+                                    返回 (繼續提交) RETURN
+                                </button>
+                             </div>
+                        </div>
+                    ) : (
                      <form 
                          onSubmit={(e) => {
                              e.preventDefault();
                              submitLeaderboardScore();
                          }}
-                         className="w-full max-w-md bg-stone-900 border-4 border-white p-6 shadow-[8px_8px_0px_0px_rgba(255,255,255,0.2)] pointer-events-auto"
+                         className="w-full max-w-md bg-stone-900 border-4 border-white p-6 shadow-[8px_8px_0px_0px_rgba(255,255,255,0.2)] pointer-events-auto relative"
                      >
+                         <button 
+                            type="button"
+                            onClick={() => setShowCancelConfirmation(true)}
+                            className="absolute -top-5 -right-5 w-10 h-10 bg-[var(--hk-taxi-red)] text-white font-bold rounded-full border-2 border-white shadow-md flex items-center justify-center hover:scale-110 hover:bg-red-600 transition-all z-10"
+                         >
+                            ✕
+                         </button>
+
                          <h2 className="text-4xl font-black mb-4 italic text-yellow-500">極限紀錄 NEW RECORD</h2>
                          <p className="text-xl font-bold mb-4 text-white">跑程 DISTANCE: <span className="text-yellow-400">{Math.floor(finalScore)}m</span></p>
                          
@@ -1412,6 +1484,7 @@ const App: React.FC = () => {
                               {isSubmitting ? "提交中 SUBMITTING..." : "提交 SUBMIT"}
                           </button>
                      </form>
+                    )
                 ) : (
                 /* Content Container with Layout Switching */
                 <div className="flex flex-col landscape:flex-row lg:landscape:flex-col items-center justify-center gap-8 landscape:gap-8 lg:landscape:gap-12 w-full max-w-5xl">

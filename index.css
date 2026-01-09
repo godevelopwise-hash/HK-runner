@@ -1,5 +1,32 @@
 @import "tailwindcss";
 
+@layer base {
+  :root {
+    /* HK Fusion Palette */
+    --hk-taxi-red: #C8102E;
+    --hk-minibus-green: #008000;
+    --hk-neon-pink: #FF0090;
+    --hk-colonial-cream: #F9F4E0;
+    --hk-royal-blue: #003399;
+    --hk-concrete: #808080;
+    
+    /* Semantic Colors */
+    --bg-primary: #0f0f12; /* Dark gritty background */
+    --text-primary: #F9F4E0;
+    --accent-glow: rgba(255, 0, 144, 0.5);
+  }
+
+  body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: 'Noto Sans TC', sans-serif; /* Default to clear readability */
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', serif; /* British Elegance */
+  }
+}
+
 @layer utilities {
   .touch-none {
     touch-action: none;
@@ -7,5 +34,64 @@
   .select-none {
     user-select: none;
     -webkit-user-select: none;
+  }
+  
+  /* HK Aesthetics */
+  .font-hk-serif {
+    font-family: 'Playfair Display', serif;
+  }
+  
+  .font-hk-sans {
+    font-family: 'Noto Sans TC', sans-serif;
+  }
+
+  /* MTR Mosaic Pattern Background */
+  .bg-mosaic {
+    background-color: #1a1a1a;
+    background-image: 
+      linear-gradient(45deg, #222 25%, transparent 25%, transparent 75%, #222 75%, #222), 
+      linear-gradient(45deg, #222 25%, transparent 25%, transparent 75%, #222 75%, #222);
+    background-size: 20px 20px;
+    background-position: 0 0, 10px 10px;
+  }
+
+  /* Glassmorphism Panel with a hint of warmth */
+  .card-glass {
+    background: rgba(20, 20, 25, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  }
+  
+  /* Street Sign Button */
+  .btn-street-sign {
+    background-color: var(--hk-royal-blue); /* Classic Road Sign Blue */
+    color: white;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border: 2px solid white;
+    border-radius: 8px; /* Slightly rounded */
+    box-shadow: 0 0 10px rgba(0, 51, 153, 0.5);
+    transition: all 0.2s ease;
+  }
+  
+  .btn-street-sign:hover {
+    box-shadow: 0 0 20px rgba(0, 51, 153, 0.8), inset 0 0 10px rgba(255,255,255,0.2);
+    transform: translateY(-2px);
+  }
+  
+  .btn-street-sign:active {
+    transform: translateY(0);
+  }
+
+  /* Minibus Sign Style (Red/White/Blue) */
+  .badge-minibus {
+    background: white;
+    color: var(--hk-taxi-red);
+    border: 3px solid var(--hk-royal-blue);
+    font-weight: 900;
   }
 }

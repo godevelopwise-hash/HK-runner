@@ -1339,7 +1339,7 @@ const TrackManager: React.FC<TrackManagerProps> = ({ gameId, speed, gameStatus, 
                       if (obs.type === 'scaffold' && playerState !== PlayerState.SLIDING) hit = true;
                       else if (obs.type === 'barrier' && py < 1.1) hit = true;
                       else if ((['minibus', 'taxi', 'waterhorse'].includes(obs.type)) && py < 2.0) hit = true;
-                      else if (obs.type === 'neon_sign') hit = true;
+                      else if (obs.type === 'neon_sign' && playerState !== PlayerState.SLIDING) hit = true;
                       else if ((['foambox', 'rock', 'traffic_cone'].includes(obs.type)) && py < 1.6) hit = true;
                       else if (obs.type === 'trashbin' && py < 1.4) hit = true;
                       else if (obs.type === 'pedestrian' && py < 1.6) hit = true;
