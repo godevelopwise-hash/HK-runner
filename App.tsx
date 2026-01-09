@@ -1318,7 +1318,12 @@ const App: React.FC = () => {
                  <div className="w-full relative mt-2 flex flex-col gap-1">
                      <div className="flex justify-between items-end px-1 gap-2">
                          <span className="text-[10px] font-bold text-stone-400 tracking-widest shrink-0 font-mono">START</span>
-                         <div className="bg-[var(--hk-royal-blue)] text-white border border-white/20 px-2 py-0.5 shadow-[0_0_10px_rgba(0,51,153,0.5)] text-[10px] font-bold leading-none truncate min-w-0 rounded-sm">
+                         <div className={`${
+                            currentRegion === RegionId.MONG_KOK ? "bg-pink-600 shadow-[0_0_10px_rgba(219,39,119,0.5)]" :
+                            currentRegion === RegionId.SHAM_SHUI_PO ? "bg-amber-600 shadow-[0_0_10px_rgba(217,119,6,0.5)]" :
+                            currentRegion === RegionId.CENTRAL ? "bg-blue-600 shadow-[0_0_10px_rgba(37,99,235,0.5)]" :
+                            "bg-emerald-600 shadow-[0_0_10px_rgba(5,150,105,0.5)]"
+                         } text-white border border-white/20 px-2 py-0.5 text-[10px] font-bold leading-none truncate min-w-0 rounded-sm transition-colors duration-500`}>
                             {regionInfo?.name || "HONG KONG"}
                          </div>
                      </div>
